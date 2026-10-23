@@ -115,9 +115,13 @@
   }
   function fromPack(pack) {
     var E = pack && Array.isArray(pack.entries) ? pack.entries : [], out = [];
+    var seen = {};
     E.slice(0, 20000).forEach(function (e) {
       if (!e || typeof e.term !== 'string' || !e.term.trim()) return;
       var full = packText(e), id = String(e.id || (e.lang || 'x') + ':' + e.term);
+      var ts = e.updatedAt || (pack && pack.builtAt) || 0;
+      if (seen[id] !== undefined) { if (ts < out[seen[id]].updatedAt) return; out.splice(seen[id], 1); Object.keys(seen).forEach(function (k) { if (seen[k] > seen[id]) seen[k]--; }); }
+      seen[id] = out.length;
       out.push({ id: 'pk:' + id, src: 'pk', title: e.term.trim(), full: full, text: full.slice(0, 1800), tags: [e.lang, e.kind].concat(e.tags || []).filter(Boolean).map(String), kind: 'pack', updatedAt: e.updatedAt || (pack && pack.builtAt) || 0, link: (e.related || []).map(String) });
     });
     return out;
