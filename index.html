@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f1117">
-<meta name="ah-rev" content="ah-r2">
+<meta name="ah-rev" content="ah-r3">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -28,6 +28,8 @@ button{font:inherit;color:var(--tx);background:#232838;border:1px solid var(--li
 button.pri{background:var(--ac);border-color:var(--ac);color:#fff;font-weight:600}
 button.sm{min-height:34px;padding:5px 10px;font-size:13px}
 button:disabled{opacity:.45}
+#banner .card{margin:0 0 8px}
+.hit b{font-size:15px}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
 .dim{color:var(--dim);font-size:12px;line-height:1.6}
 .ans{white-space:pre-wrap;word-break:break-word}
@@ -59,14 +61,17 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
 </head>
 <body>
 <header><h1>🧠 統合AI</h1><span class="badge" id="hb">読み込み前</span></header>
+<div id="banner"></div>
 
 <section id="s-ask">
   <div class="card">
     <textarea id="q" rows="3" placeholder="辞書とメモを根拠に聞く　例）CORSとは？　通信まわりの用語を表にして"></textarea>
     <label class="chk"><input type="checkbox" id="codeMode"> 💻 コードを書いてもらう（ルール帳を守らせる）</label>
-    <div class="row"><button class="pri" id="askBtn">聞く</button><span class="dim" id="usage"></span></div>
+    <div class="row"><button class="pri" id="askBtn">🤖 AIに聞く</button><span class="dim" id="usage"></span></div>
+    <div class="dim" style="margin-top:6px">入力すると、辞書・メモから即座に探して下に出します（AIは使いません）。プロンプトやコマンドは、「全文を見る」でそのまま出ます。</div>
   </div>
   <div id="out"></div>
+  <div id="hits"></div>
 </section>
 
 <section id="s-know" hidden>
@@ -93,11 +98,12 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
   <div class="card"><h2>AIの接続</h2>
     <div class="dim" id="cfgNote"></div>
     <label>エンドポイント（sync-worker）</label><input id="cEp" placeholder="https://…" autocapitalize="off" autocorrect="off">
+    <div class="dim" id="cFp"></div>
     <label>トークン（表示しません。入れたときだけ上書き）</label><input id="cTk" type="password" placeholder="空のままなら今の値を使います" autocapitalize="off" autocorrect="off">
     <label>AIの種類</label><select id="cPv"><option value="gemini">Gemini</option><option value="openai">OpenAI</option><option value="claude">Claude</option></select>
     <label>モデル名（空なら標準）</label><input id="cMd" autocapitalize="off" autocorrect="off">
     <label>1日の目安回数（超えると確認します）</label><input id="cLm" type="number" min="1" max="500">
-    <div class="row"><button class="pri" id="cSave">保存</button></div></div>
+    <div class="row"><button class="pri" id="cSave">保存</button><button id="cTest">接続テスト</button></div><div class="dim ans" id="cRes"></div></div>
   <div class="card dim">送る前に、保護メモ・「AI作成／まとまり／用語／スライス」タグのメモ・鍵やトークンらしい行は必ず外します。AIの作ったものを、表・集合・フローにするのは、あなたが押したときだけです。</div>
 </section>
 
@@ -170,7 +176,9 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
         if (q.sensitive) return;
         parts.push('Q：' + String(q.question || '').slice(0, 200) + '\nA：' + String(q.answer || '').slice(0, 600) + (q.judgment ? '\n自分の判断：' + String(q.judgment).slice(0, 300) : ''));
       });
-      out.push({ id: 'kd:' + e.id, src: 'kd', title: String(e.term), text: parts.join('\n'), tags: (e.tags || []).map(String), kind: e.kind || 'term', updatedAt: e.updatedAt || 0, link: (e.related || []).map(String) });
+      var fp = [String(e.term)]; if (e.oneLine) fp.push('一言：' + e.oneLine); if (e.note) fp.push('自分の理解：\n' + e.note);
+      (by[e.id] || []).forEach(function (q) { if (!q.sensitive) fp.push('――――\nQ：' + (q.question || '') + '\n\nA：\n' + (q.answer || '') + (q.judgment ? '\n\n自分の判断：\n' + q.judgment : '')); });
+      out.push({ id: 'kd:' + e.id, src: 'kd', title: String(e.term), full: fp.join('\n\n'), text: parts.join('\n'), tags: (e.tags || []).map(String), kind: e.kind || 'term', updatedAt: e.updatedAt || 0, link: (e.related || []).map(String) });
     });
     return out;
   }
@@ -183,7 +191,8 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
       if (tg.some(function (t) { return EXCLUDE_TAGS.indexOf(t) >= 0; })) return;
       var text = plain(x.body);
       if (x.qa && (x.qa.question || x.qa.answer)) text = 'Q：' + String(x.qa.question || '').slice(0, 200) + '\nA：' + String(x.qa.answer || '').slice(0, 600) + '\n' + text;
-      out.push({ id: 'qr:' + x.id, src: 'qr', title: String(x.title || '(無題)'), text: text.slice(0, 2000), tags: tg, kind: 'memo', updatedAt: x.updatedAt || x.createdAt || 0, link: [] });
+      var fullQ = x.qa && (x.qa.question || x.qa.answer) ? 'Q：' + (x.qa.question || '') + '\n\nA：\n' + (x.qa.answer || '') + '\n\n' + plain(x.body) : plain(x.body);
+      out.push({ id: 'qr:' + x.id, src: 'qr', title: String(x.title || '(無題)'), full: fullQ, text: text.slice(0, 2000), tags: tg, kind: 'memo', updatedAt: x.updatedAt || x.createdAt || 0, link: [] });
     });
     return out;
   }
@@ -236,8 +245,10 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
     });
     return out;
   }
-  function material(d, budget) {
+  function fullText(d) { return d.full || d.text || ''; }
+  function material(d, budget, whole) {
     var t = '■[' + (d.src === 'kd' ? '辞書' : 'メモ') + ':' + redactTitle(d.title) + ']' + (d.tags.length ? '\nタグ：' + d.tags.join(' ') : '') + (d.text ? '\n' + d.text : '');
+    if (whole) t = '■[' + (d.src === 'kd' ? '辞書' : 'メモ') + ':' + redactTitle(d.title) + ']\n' + fullText(d);
     return redact(t).text.slice(0, budget || 1400);
   }
 
@@ -313,6 +324,8 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
     if (/^(json)$/.test(lang)) { try { JSON.parse(code); } catch (e) { w.push('JSON が壊れています：' + e.message); } }
     return w;
   }
+  var VERB = /全文|そのまま|原文|プロンプト|コマンド|スクリプト|コピペ|貼って|貼り付け/;
+  var VERB_HEAD = 'あなたは私の辞書とメモの「引き出し係」です。下の【材料】に、頼まれたプロンプト・コマンド・文章があるときは、省略も要約も言い換えもせず、原文のまま全文を出してください。コードやコマンドはコードブロックに入れる。足りない部分があっても、材料に無いものは作らず「材料にはありません」と書く。前置きは1行まで。根拠は [1] のように番号で示す。';
   async function ask(docs, question, opts) {
     opts = opts || {};
     if (opts.code) {
@@ -320,6 +333,14 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
       var cr = await callAI(CODE_HEAD + '\n\n' + rulesText(opts.rules) + '\n\n【材料】\n' + (mt || '(なし)') + '\n\n【頼みたいこと】\n' + question, { maxTokens: opts.maxTokens || 2500, timeout: opts.timeout || 120000 });
       var blocks = extractCode(cr.text).map(function (b) { b.warn = lintCode(b); return b; });
       return { answer: cr.text, actions: [], code: blocks, hits: ch, removed: cr.removed, model: cr.model, none: false, isCode: true };
+    }
+    if (!opts.general && VERB.test(question)) {   // 全文モード：プロンプト・コマンドは要約せず原文のまま
+      var vh = retrieve(docs, question, 2, opts.boost);
+      if (vh.length) {
+        var vm = vh.map(function (d, i) { return '【' + (i + 1) + '】' + material(d, 7000, true); }).join('\n\n');
+        var vr = await callAI(VERB_HEAD + '\n\n【材料】\n' + vm + '\n\n【頼みたいこと】\n' + question, { maxTokens: 4000, timeout: 120000 });
+        return { answer: vr.text, actions: [], hits: vh, removed: vr.removed, model: vr.model, none: false, verbatim: true };
+      }
     }
     var hits = opts.general ? [] : retrieve(docs, question, opts.k || 6, opts.boost);
     if (!hits.length && !opts.general) return { answer: '', actions: [], hits: [], none: true };
@@ -329,7 +350,7 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
   }
 
   var api = { fromKD: fromKD, fromQR: fromQR, fetchBox: fetchBox, loadFeed: loadFeed, retrieve: retrieve, material: material, buildPrompt: buildPrompt,
-    callAI: callAI, ask: ask, parseReply: parseReply, extractCode: extractCode, lintCode: lintCode, rulesText: rulesText, redact: redact, redactTitle: redactTitle, isSecret: isSecret, config: config, plain: plain, EXCLUDE_TAGS: EXCLUDE_TAGS };
+    callAI: callAI, ask: ask, fullText: fullText, VERB: VERB, parseReply: parseReply, extractCode: extractCode, lintCode: lintCode, rulesText: rulesText, redact: redact, redactTitle: redactTitle, isSecret: isSecret, config: config, plain: plain, EXCLUDE_TAGS: EXCLUDE_TAGS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.AICore = api;
 })(typeof window !== 'undefined' ? window : globalThis);
 
@@ -354,15 +375,40 @@ const saveMem=()=>{lsSet('ah_mem_v1',JSON.stringify(MEM));lsSet('ah_fb_v1',JSON.
 function memDocs(){return MEM.map(m=>({id:'ah:'+m.id,src:'ah',title:m.q,text:'A：'+m.a,tags:['育てた答え'],kind:'qa',updatedAt:m.updatedAt||m.at||0,link:[]}))}
 function boost(){const b={};FB.forEach(f=>(f.docIds||[]).forEach(id=>{b[id]=(b[id]||0)+f.vote}));MEM.forEach(m=>{b['ah:'+m.id]=(b['ah:'+m.id]||0)+1});return b}
 
+// ---- 端末に前回の知識を残す（開いた瞬間に使える）
+function idbOpen(){return new Promise((res,rej)=>{try{const r=indexedDB.open('ai-hub',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}})}
+async function idbGet(k){try{const d=await idbOpen();return await new Promise(res=>{const q=d.transaction('kv').objectStore('kv').get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>res(null)})}catch(_){return null}}
+async function idbSet(k,v){try{const d=await idbOpen();await new Promise(res=>{const t=d.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=()=>res();t.onerror=()=>res()})}catch(_){}}
 // ---- 知識の読み込み
 let FEED={docs:[],stat:{kd:0,qr:0},err:{}},loaded=false,loading=false;
 const allDocs=()=>FEED.docs.concat(memDocs());
 async function loadFeed(){
   if(loading)return;loading=true;$('hb').textContent='読み込み中…';$('hb').className='badge';
-  try{FEED=await A.loadFeed();loaded=true}catch(e){FEED={docs:[],stat:{kd:0,qr:0},err:{all:e.message}}}
-  loading=false;paintHead();paintKnow();paintGrow()}
+  try{
+    const r=await A.loadFeed(),old=FEED.docs,docs=[],stat={kd:0,qr:0};
+    ['kd','qr'].forEach(src=>{const keep=r.err[src]?old.filter(d=>d.src===src):r.docs.filter(d=>d.src===src);keep.forEach(d=>docs.push(d));stat[src]=keep.length});
+    FEED={docs,stat,err:r.err};loaded=true;
+    if(docs.length&&!Object.keys(r.err).length)idbSet('feed',{docs,stat,at:Date.now()});
+    else if(docs.length)idbSet('feed',{docs,stat,at:Date.now()});
+  }catch(e){FEED={docs:FEED.docs,stat:FEED.stat,err:{all:e.message}}}
+  loading=false;paintHead();paintKnow();paintGrow();paintHits()}
+function errHelp(){const er=FEED.err||{},v=Object.values(er);if(!v.length)return '';
+  const t=v.join(' / ');
+  if(/401|403|トークン/.test(t))return 'トークンが違います。⚙️ で入れ直してください。入れたトークンの先頭2文字・末尾2文字・文字数が ⚙️ に出るので、quick-ref／知識辞書の設定と見比べられます。';
+  if(/Failed to fetch|Load failed|NetworkError|通信/.test(t))return '通信できませんでした（回線またはエンドポイントを確認）。前回の内容があればそれを使っています。';
+  return t}
 function paintHead(){const n=allDocs().length,e=Object.keys(FEED.err||{}).length;
-  $('hb').textContent=e&&!FEED.docs.length?'未接続':n+'件'+(e?'（一部エラー）':'');$('hb').className='badge '+(e&&!FEED.docs.length?'ng':'ok')}
+  $('hb').textContent=e&&!FEED.docs.length?'未接続':n+'件'+(e?'・前回分':'');$('hb').className='badge '+(e&&!FEED.docs.length?'ng':'ok');
+  $('banner').innerHTML=e?'<div class="card '+(FEED.docs.length?'warn':'err')+'"><b>'+(FEED.docs.length?'更新できませんでした（前回の内容で動いています）':'知識を読み込めていません')+'</b><div class="dim" style="color:inherit;margin-top:4px">'+esc(errHelp())+'</div></div>':''}
+// ---- 即時検索（AIを使わない）
+function snip(d){const t=(A.fullText(d)||'').replace(/\s+/g,' ');return t.slice(0,90)+(t.length>90?'…':'')}
+function paintHits(){
+  const q=$('q').value.trim(),all=allDocs();
+  let L=[],head='';
+  if(!all.length){$('hits').innerHTML='';return}
+  if(!q){L=all.slice().sort((a,b)=>b.updatedAt-a.updatedAt).slice(0,5);head='最近の項目'}
+  else{L=A.retrieve(all,q,8,boost());const n=A.redactTitle(q).toLowerCase();if(L.length<8)all.forEach(d=>{if(L.length<8&&!L.includes(d)&&d.title.toLowerCase().indexOf(n)>=0)L.push(d)});head=L.length?'辞書・メモから '+L.length+'件（即時）':'一致する項目がありません（AIに聞いても材料はありません）'}
+  $('hits').innerHTML='<div class="dim" style="margin:6px 2px">'+esc(head)+'</div>'+L.map(d=>'<div class="card hit"><b>'+esc(A.redactTitle(d.title))+'</b> <span class="tag '+d.src+'">'+(d.src==='kd'?'辞書':d.src==='qr'?'メモ':'育')+'</span><span class="tg dim">'+esc(d.tags.slice(0,4).join(' · '))+'</span><div class="dim">'+esc(snip(d))+'</div><div class="row"><button class="sm pri" data-open="'+esc(d.id)+'">全文を見る</button><button class="sm" data-copyfull="'+esc(d.id)+'">全文コピー</button></div><pre class="code" hidden></pre></div>').join('')}
 
 // ---- 1日の使用回数
 function usage(){const d=new Date().toISOString().slice(0,10),u=jget('ah_usage',{});return u.d===d?u:{d,n:0}}
@@ -392,10 +438,10 @@ function renderAns(){
 async function doAsk(general){
   const q=$('q').value.trim();if(!q){toast('質問を入れてください');return}
   if(!general&&!loaded&&!loading)await loadFeed();
-  if(!allDocs().length&&!general&&!$('codeMode').checked){LAST={error:'知識が読み込めていません。⚙️ で接続（エンドポイント・トークン）を確認して、📚 で読み込み直してください。'+(Object.values(FEED.err||{}).join(' / ')?'　'+Object.values(FEED.err).join(' / '):'')};renderAns();return}
+  if(!allDocs().length&&!general&&!$('codeMode').checked){LAST={error:'知識が読み込めていません。'+(errHelp()||'⚙️ で接続（エンドポイント・トークン）を確認して、📚 で読み込み直してください。')};renderAns();return}
   const lim=limit(),u=usage();
   if(u.n>=lim&&!confirm('今日は '+u.n+'回 使いました（目安 '+lim+'回）。トークンを使います。続けますか？'))return;
-  const b=$('askBtn');b.disabled=true;b.textContent='考え中…';
+  const b=$('askBtn');b.disabled=true;let sec=0;b.textContent='考え中…';const tmr=setInterval(()=>{b.textContent='考え中… '+(++sec)+'秒'},1000);
   try{
     const code=$('codeMode').checked&&!general;
     const r=await A.ask(allDocs(),q,{general:!!general,boost:boost(),code,rules:RULES});
@@ -403,7 +449,7 @@ async function doAsk(general){
     LAST=Object.assign({q},r);
     if(r.none){GAP=GAP.filter(g=>g.q!==q);GAP.push({id:uid(),q,at:Date.now()});saveMem()}
   }catch(e){LAST={error:(e&&e.message)||String(e)}}
-  b.disabled=false;b.textContent='聞く';paintUsage();renderAns();paintGrow()}
+  clearInterval(tmr);b.disabled=false;b.textContent='🤖 AIに聞く';paintUsage();renderAns();paintGrow()}
 function vote(v){
   if(!LAST||LAST.fb||!LAST.hits)return;
   const ids=LAST.hits.map(d=>d.id);if(!ids.length&&!LAST.isCode)return;
@@ -474,7 +520,8 @@ async function syncMem(){
 // ---- 設定タブ
 function paintCfg(){
   const own=!!lsGet('ah_endpoint'),c=A.config();
-  $('cfgNote').textContent=(c.endpoint&&c.token)?(own?'この画面の設定を使っています。':'辞書／メモの設定を借りています。変えたいときだけ下に入れてください。')+'（接続先 '+(()=>{try{return new URL(c.endpoint).host}catch(_){return '?'}})()+'、トークン '+c.token.length+'文字）':'未設定です。sync-worker のエンドポイントとトークンを入れてください。';
+  $('cfgNote').textContent=(c.endpoint&&c.token)?(own?'この画面の設定を使っています。':'辞書／メモの設定を借りています。')+'（接続先 '+(()=>{try{return new URL(c.endpoint).host}catch(_){return '?'}})()+'、トークン '+c.token.length+'文字）':'未設定です。sync-worker のエンドポイントとトークンを入れてください。';
+  $('cFp').textContent=c.token?'今のトークン：先頭 '+c.token.slice(0,2)+' ／ 末尾 '+c.token.slice(-2)+' ／ '+c.token.length+'文字':'';
   $('cEp').value=lsGet('ah_endpoint');$('cTk').value='';$('cPv').value=lsGet('ah_provider')||c.provider||'gemini';$('cMd').value=lsGet('ah_model');$('cLm').value=limit()}
 function saveCfg(){
   const ep=$('cEp').value.trim().replace(/\/+$/,''),tk=$('cTk').value.trim();
@@ -490,11 +537,21 @@ $('nav').addEventListener('click',e=>{const b=e.target.closest('button[data-t]')
   ['ask','know','grow','set'].forEach(t=>{$('s-'+t).hidden=t!==b.dataset.t});
   if(b.dataset.t==='set')paintCfg();if(b.dataset.t==='know')paintKnow();if(b.dataset.t==='grow')paintGrow();window.scrollTo(0,0)});
 $('askBtn').addEventListener('click',()=>doAsk(false));
+let ht=null;$('q').addEventListener('input',()=>{clearTimeout(ht);ht=setTimeout(paintHits,120)});
 $('reload').addEventListener('click',loadFeed);
 $('ksearch').addEventListener('input',paintKnow);
 $('syncBtn').addEventListener('click',syncMem);$('expBtn').addEventListener('click',exportJSONL);$('cSave').addEventListener('click',saveCfg);
+$('cTest').addEventListener('click',async()=>{const c=A.config(),o=$('cRes');if(!c.endpoint||!c.token){o.textContent='エンドポイントとトークンを入れて「保存」してから押してください';return}
+  o.textContent='試しています…';const lines=[];
+  for(const [n,l] of [['knowledge-dictionary','辞書'],['quick-ref','メモ']]){
+    try{const r=await fetch(c.endpoint+'/sync/'+n,{headers:{Authorization:'Bearer '+c.token}});
+      lines.push(l+'：'+(r.status===200?'つながりました（HTTP 200）':r.status===404?'つながりました。ただし中身が空です（そのアプリで「今すぐ同期」を押してください）':r.status===401||r.status===403?'トークンが違います（HTTP '+r.status+'）':'HTTP '+r.status))}
+    catch(e){lines.push(l+'：通信できませんでした（'+((e&&e.message)||e)+'）')}}
+  o.textContent=lines.join('\n')});
 document.addEventListener('click',e=>{
   const t=e.target.closest('button');if(!t)return;
+  if(t.dataset.open){const d=allDocs().find(x=>x.id===t.dataset.open),p=t.closest('.hit').querySelector('pre');if(d&&p){if(p.hidden){p.textContent=A.fullText(d);p.hidden=false;t.textContent='閉じる'}else{p.hidden=true;t.textContent='全文を見る'}}return}
+  if(t.dataset.copyfull){const d=allDocs().find(x=>x.id===t.dataset.copyfull);if(d)copyText(A.fullText(d));return}
   if(t.id==='genBtn'){doAsk(true);return}
   if(t.dataset.n){const s=$('src'+t.dataset.n);if(s){const p=s.querySelector('pre');p.hidden=!p.hidden;s.scrollIntoView({behavior:'smooth',block:'nearest'})}return}
   if(t.dataset.k){const d=allDocs().find(x=>x.id===t.dataset.k),p=t.parentNode.querySelector('pre');if(d&&p){p.textContent=A.material(d,1200);p.hidden=!p.hidden}return}
@@ -511,7 +568,9 @@ document.addEventListener('click',e=>{
   if(t.dataset.gask){const g=GAP.find(x=>x.id===t.dataset.gask);if(g){$('q').value=g.q;document.querySelector('nav button[data-t=ask]').click()}return}
 });
 paintUsage();paintHead();paintKnow();paintGrow();
-if(A.config().endpoint&&A.config().token)loadFeed();else{$('hb').textContent='未接続';$('hb').className='badge ng';LAST={error:'まず ⚙️ で接続を入れてください。辞書やメモを同じブラウザで開いたことがあれば、その設定を自動で借ります。'};renderAns()}
+(async()=>{const c=await idbGet('feed');if(c&&Array.isArray(c.docs)&&c.docs.length){FEED={docs:c.docs,stat:c.stat||{kd:0,qr:0},err:{}};loaded=true;paintHead();paintKnow();paintGrow();paintHits()}
+  if(A.config().endpoint&&A.config().token)loadFeed();else if(!(c&&c.docs&&c.docs.length)){$('hb').textContent='未接続';$('hb').className='badge ng';LAST=Object.assign({},{error:'まず ⚙️ で接続を入れてください。iPhoneのホーム画面アプリは、辞書・メモとは設定が別なので、この画面に1回だけ入れます。'});renderAns()}
+})();
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
 window.__ah={get LAST(){return LAST},get RULES(){return RULES},get MEM(){return MEM},get FB(){return FB},boost,allDocs};
 })();

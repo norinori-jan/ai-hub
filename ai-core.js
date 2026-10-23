@@ -59,7 +59,9 @@
         if (q.sensitive) return;
         parts.push('Q：' + String(q.question || '').slice(0, 200) + '\nA：' + String(q.answer || '').slice(0, 600) + (q.judgment ? '\n自分の判断：' + String(q.judgment).slice(0, 300) : ''));
       });
-      out.push({ id: 'kd:' + e.id, src: 'kd', title: String(e.term), text: parts.join('\n'), tags: (e.tags || []).map(String), kind: e.kind || 'term', updatedAt: e.updatedAt || 0, link: (e.related || []).map(String) });
+      var fp = [String(e.term)]; if (e.oneLine) fp.push('一言：' + e.oneLine); if (e.note) fp.push('自分の理解：\n' + e.note);
+      (by[e.id] || []).forEach(function (q) { if (!q.sensitive) fp.push('――――\nQ：' + (q.question || '') + '\n\nA：\n' + (q.answer || '') + (q.judgment ? '\n\n自分の判断：\n' + q.judgment : '')); });
+      out.push({ id: 'kd:' + e.id, src: 'kd', title: String(e.term), full: fp.join('\n\n'), text: parts.join('\n'), tags: (e.tags || []).map(String), kind: e.kind || 'term', updatedAt: e.updatedAt || 0, link: (e.related || []).map(String) });
     });
     return out;
   }
@@ -72,7 +74,8 @@
       if (tg.some(function (t) { return EXCLUDE_TAGS.indexOf(t) >= 0; })) return;
       var text = plain(x.body);
       if (x.qa && (x.qa.question || x.qa.answer)) text = 'Q：' + String(x.qa.question || '').slice(0, 200) + '\nA：' + String(x.qa.answer || '').slice(0, 600) + '\n' + text;
-      out.push({ id: 'qr:' + x.id, src: 'qr', title: String(x.title || '(無題)'), text: text.slice(0, 2000), tags: tg, kind: 'memo', updatedAt: x.updatedAt || x.createdAt || 0, link: [] });
+      var fullQ = x.qa && (x.qa.question || x.qa.answer) ? 'Q：' + (x.qa.question || '') + '\n\nA：\n' + (x.qa.answer || '') + '\n\n' + plain(x.body) : plain(x.body);
+      out.push({ id: 'qr:' + x.id, src: 'qr', title: String(x.title || '(無題)'), full: fullQ, text: text.slice(0, 2000), tags: tg, kind: 'memo', updatedAt: x.updatedAt || x.createdAt || 0, link: [] });
     });
     return out;
   }
@@ -125,8 +128,10 @@
     });
     return out;
   }
-  function material(d, budget) {
+  function fullText(d) { return d.full || d.text || ''; }
+  function material(d, budget, whole) {
     var t = '■[' + (d.src === 'kd' ? '辞書' : 'メモ') + ':' + redactTitle(d.title) + ']' + (d.tags.length ? '\nタグ：' + d.tags.join(' ') : '') + (d.text ? '\n' + d.text : '');
+    if (whole) t = '■[' + (d.src === 'kd' ? '辞書' : 'メモ') + ':' + redactTitle(d.title) + ']\n' + fullText(d);
     return redact(t).text.slice(0, budget || 1400);
   }
 
@@ -202,6 +207,8 @@
     if (/^(json)$/.test(lang)) { try { JSON.parse(code); } catch (e) { w.push('JSON が壊れています：' + e.message); } }
     return w;
   }
+  var VERB = /全文|そのまま|原文|プロンプト|コマンド|スクリプト|コピペ|貼って|貼り付け/;
+  var VERB_HEAD = 'あなたは私の辞書とメモの「引き出し係」です。下の【材料】に、頼まれたプロンプト・コマンド・文章があるときは、省略も要約も言い換えもせず、原文のまま全文を出してください。コードやコマンドはコードブロックに入れる。足りない部分があっても、材料に無いものは作らず「材料にはありません」と書く。前置きは1行まで。根拠は [1] のように番号で示す。';
   async function ask(docs, question, opts) {
     opts = opts || {};
     if (opts.code) {
@@ -209,6 +216,14 @@
       var cr = await callAI(CODE_HEAD + '\n\n' + rulesText(opts.rules) + '\n\n【材料】\n' + (mt || '(なし)') + '\n\n【頼みたいこと】\n' + question, { maxTokens: opts.maxTokens || 2500, timeout: opts.timeout || 120000 });
       var blocks = extractCode(cr.text).map(function (b) { b.warn = lintCode(b); return b; });
       return { answer: cr.text, actions: [], code: blocks, hits: ch, removed: cr.removed, model: cr.model, none: false, isCode: true };
+    }
+    if (!opts.general && VERB.test(question)) {   // 全文モード：プロンプト・コマンドは要約せず原文のまま
+      var vh = retrieve(docs, question, 2, opts.boost);
+      if (vh.length) {
+        var vm = vh.map(function (d, i) { return '【' + (i + 1) + '】' + material(d, 7000, true); }).join('\n\n');
+        var vr = await callAI(VERB_HEAD + '\n\n【材料】\n' + vm + '\n\n【頼みたいこと】\n' + question, { maxTokens: 4000, timeout: 120000 });
+        return { answer: vr.text, actions: [], hits: vh, removed: vr.removed, model: vr.model, none: false, verbatim: true };
+      }
     }
     var hits = opts.general ? [] : retrieve(docs, question, opts.k || 6, opts.boost);
     if (!hits.length && !opts.general) return { answer: '', actions: [], hits: [], none: true };
@@ -218,6 +233,6 @@
   }
 
   var api = { fromKD: fromKD, fromQR: fromQR, fetchBox: fetchBox, loadFeed: loadFeed, retrieve: retrieve, material: material, buildPrompt: buildPrompt,
-    callAI: callAI, ask: ask, parseReply: parseReply, extractCode: extractCode, lintCode: lintCode, rulesText: rulesText, redact: redact, redactTitle: redactTitle, isSecret: isSecret, config: config, plain: plain, EXCLUDE_TAGS: EXCLUDE_TAGS };
+    callAI: callAI, ask: ask, fullText: fullText, VERB: VERB, parseReply: parseReply, extractCode: extractCode, lintCode: lintCode, rulesText: rulesText, redact: redact, redactTitle: redactTitle, isSecret: isSecret, config: config, plain: plain, EXCLUDE_TAGS: EXCLUDE_TAGS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.AICore = api;
 })(typeof window !== 'undefined' ? window : globalThis);
