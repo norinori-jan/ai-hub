@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f1117">
-<meta name="ah-rev" content="ah-r3">
+<meta name="ah-rev" content="ah-r4">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -38,7 +38,7 @@ button:disabled{opacity:.45}
 .src b{font-size:13px}.src .tg{color:var(--dim);font-size:11px}
 .src pre{white-space:pre-wrap;word-break:break-word;margin:6px 0 0;font:12.5px/1.6 inherit;color:#c9cfdd;max-height:220px;overflow:auto}
 .tag{font-size:10px;padding:1px 6px;border-radius:6px;margin-right:6px;border:1px solid var(--line);color:var(--dim)}
-.tag.kd{color:#8fd0ff}.tag.qr{color:#ffd48f}.tag.ah{color:#8fe3b4}
+.tag.pk{color:#e3b8ff}.tag.kd{color:#8fd0ff}.tag.qr{color:#ffd48f}.tag.ah{color:#8fe3b4}
 .act{border:1px solid #3a4666;border-radius:10px;padding:10px;margin-top:8px;background:#141a2a}
 .warn{border-color:#7a5a1f;background:#241d0e;color:#f3d594}
 .err{border-color:#7a2a38;background:#2a1118;color:#ffb3c0}
@@ -77,6 +77,15 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
 <section id="s-know" hidden>
   <div class="card"><h2>根拠にできる知識</h2><div class="stat" id="kstat"></div>
     <div class="row"><button id="reload" class="sm">↻ 読み込み直す</button></div><div class="dim" id="kerr"></div></div>
+  <div class="card"><h2>📖 辞書パック（週末エージェントが作る辞書）</h2>
+    <div class="dim" id="pkInfo"></div>
+    <div class="row"><button class="sm" id="pkFile">ファイルから読み込む</button><button class="sm" id="pkGet">クラウドから取り込む</button><button class="sm" id="pkPut">クラウドに置く</button><button class="sm" id="pkOut">ファイルに書き出す</button><button class="sm" id="pkDel">消す</button></div>
+    <input type="file" id="pkInput" accept=".json,application/json" hidden>
+    <div class="dim" id="pkMsg"></div></div>
+  <div class="card"><h2>⛏ 自分のデータから構文・コマンドを拾う（AI不使用）</h2>
+    <div class="dim">メモ・辞書の中に出てくる PowerShell のコマンド、git、JavaScript の部品、SQL を数えて、一覧にします。通信もトークンも使いません。</div>
+    <div class="row"><button class="sm pri" id="mnGo">拾う</button><button class="sm" id="mnAdd" disabled>辞書パックに入れる</button><button class="sm" id="mnRaw">📦 エージェント用の材料を書き出す</button></div>
+    <div class="dim" id="mnMsg"></div><div id="mnList"></div></div>
   <div class="card"><input id="ksearch" type="search" placeholder="題・タグで絞る"><div id="klist"></div></div>
 </section>
 
@@ -217,6 +226,74 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
     return { docs: docs, stat: stat, err: err };
   }
 
+  // ---------- 辞書パック（週末エージェントが作る辞書）→ 文書 ----------
+  function srcLabel(src) { return src === 'kd' ? '辞書' : src === 'qr' ? 'メモ' : src === 'ah' ? '育てた答え' : src === 'pk' ? '辞書パック' : src; }
+  function packText(e) {
+    var L = [];
+    if (e.summary) L.push(e.summary);
+    if (e.form) L.push('【形】\n' + e.form);
+    if (e.parts && e.parts.length) L.push('【部品の意味】\n' + e.parts.map(function (p) { return Array.isArray(p) ? '- ' + p[0] + '：' + (p[1] || '') : '- ' + p; }).join('\n'));
+    if (e.example) L.push('【例】\n' + e.example);
+    if (e.mistakes && e.mistakes.length) L.push('【よくある間違い】\n' + e.mistakes.map(function (m) { return '- ' + m; }).join('\n'));
+    if (e.related && e.related.length) L.push('【関連】' + e.related.join('、'));
+    if (e.sources && e.sources.length) L.push('【出どころ（自分のメモ）】' + e.sources.map(function (x) { return x.title || x.id; }).join(' ／ '));
+    return L.join('\n\n');
+  }
+  function fromPack(pack) {
+    var E = pack && Array.isArray(pack.entries) ? pack.entries : [], out = [];
+    E.slice(0, 20000).forEach(function (e) {
+      if (!e || typeof e.term !== 'string' || !e.term.trim()) return;
+      var full = packText(e), id = String(e.id || (e.lang || 'x') + ':' + e.term);
+      out.push({ id: 'pk:' + id, src: 'pk', title: e.term.trim(), full: full, text: full.slice(0, 1800), tags: [e.lang, e.kind].concat(e.tags || []).filter(Boolean).map(String), kind: 'pack', updatedAt: e.updatedAt || (pack && pack.builtAt) || 0, link: (e.related || []).map(String) });
+    });
+    return out;
+  }
+  // ---------- 自分のデータから構文・コマンドを拾う（AI不使用） ----------
+  var MINE = [
+    { lang: 'ps', re: /\b(?:Get|Set|New|Remove|Copy|Move|Test|Join|Select|Where|ForEach|Sort|Out|Write|Invoke|Start|Stop|Add|Clear|Compare|ConvertFrom|ConvertTo|Convert|Expand|Export|Import|Find|Format|Measure|Read|Rename|Resolve|Split|Unblock|Enable|Disable|Install|Uninstall|Register|Restart|Show|Wait|Push|Pop)-[A-Z][A-Za-z]+\b/g },
+    { lang: 'js', re: /\b(?:document|window|navigator|localStorage|sessionStorage|indexedDB|JSON|Math|Object|Array|Promise|URL|Intl|Date|Number|String)\.[A-Za-z]+\b/g },
+    { lang: 'js', re: /\b(?:fetch|addEventListener|querySelectorAll|querySelector|getElementById|setTimeout|setInterval|requestAnimationFrame)(?=\()/g },
+    { lang: 'sql', re: /\b(?:SELECT|INSERT INTO|UPDATE|DELETE FROM|CREATE TABLE|LEFT JOIN|JOIN|GROUP BY|ORDER BY|WHERE|HAVING)\b/g }
+  ];
+  var CLI = /^\s*(?:PS [^>]*>|[$>%]\s*)?(git|gh|npm|npx|node|python3?|py|pip3?|curl|winget|wrangler|ssh|brew|claude|cd|ls|cp|mv|rm|mkdir|chmod|grep|find|cat|echo)\b(?:\s+([a-z][a-z-]*))?/;
+  function mine(docs, opts) {
+    opts = opts || {};
+    var map = {};
+    function hit(lang, term, d, line) {
+      var k = lang + '\u0000' + term, m = map[k] || (map[k] = { lang: lang, term: term, count: 0, docs: {}, ex: [] });
+      m.count++; m.docs[d.id] = d.title;
+      var l = line.trim().slice(0, 160);
+      if (l && m.ex.length < 3 && m.ex.indexOf(l) < 0 && !isSecret(l)) m.ex.push(l);
+    }
+    docs.forEach(function (d) {
+      if (d.src !== 'kd' && d.src !== 'qr') return;
+      fullText(d).split('\n').forEach(function (line) {
+        if (line.length > 400) return;
+        MINE.forEach(function (p) { var m; p.re.lastIndex = 0; while ((m = p.re.exec(line))) hit(p.lang, m[0].trim(), d, line); });
+        var c = CLI.exec(line);
+        if (c) { var sub = c[2] && !/^(the|and|for|is|to|a)$/.test(c[2]) ? ' ' + c[2] : ''; hit(c[1] === 'git' || c[1] === 'gh' ? c[1] : 'sh', c[1] + sub, d, line); }
+      });
+    });
+    var min = opts.min || 1;
+    return Object.keys(map).map(function (k) { return map[k]; }).filter(function (m) { return m.count >= min; })
+      .sort(function (a, b) { return b.count - a.count || a.term.localeCompare(b.term); }).slice(0, opts.max || 400)
+      .map(function (m) {
+        var ids = Object.keys(m.docs);
+        return { id: 'mn:' + m.lang + ':' + m.term, term: m.term, lang: m.lang, kind: 'mined', summary: '自分のメモで ' + m.count + '回、' + ids.length + '件のメモに出てきました（AIは使わず拾っただけ。意味の説明はまだありません）', example: m.ex.join('\n'), sources: ids.slice(0, 5).map(function (i) { return { id: i, title: m.docs[i] }; }), tags: ['自分の使い方'], count: m.count, updatedAt: Date.now() };
+      });
+  }
+  // エージェント（PCのClaude Code）に渡す材料。保護メモは入口で外れている。さらに秘密らしい行を伏せる
+  function exportRaw(docs) {
+    var skipped = 0, L = [];
+    docs.forEach(function (d) {
+      if (d.src !== 'kd' && d.src !== 'qr') return;
+      var r = redact(fullText(d)); skipped += r.removed;
+      L.push({ id: d.id, src: d.src, title: redactTitle(d.title), tags: d.tags, updatedAt: d.updatedAt, text: r.text });
+    });
+    var mined = mine(docs).map(function (m) { return { term: m.term, lang: m.lang, count: m.count, example: m.example, sources: m.sources.map(function (x) { return x.title; }) }; });
+    return { app: 'ai-hub-raw', version: 1, at: Date.now(), count: L.length, redactedLines: skipped, docs: L, mined: mined };
+  }
+
   // ---------- 根拠の検索（見出し語・タグ・本文の重みつき） ----------
   function retrieve(docs, query, k, boost) {
     boost = boost || {};
@@ -247,8 +324,8 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
   }
   function fullText(d) { return d.full || d.text || ''; }
   function material(d, budget, whole) {
-    var t = '■[' + (d.src === 'kd' ? '辞書' : 'メモ') + ':' + redactTitle(d.title) + ']' + (d.tags.length ? '\nタグ：' + d.tags.join(' ') : '') + (d.text ? '\n' + d.text : '');
-    if (whole) t = '■[' + (d.src === 'kd' ? '辞書' : 'メモ') + ':' + redactTitle(d.title) + ']\n' + fullText(d);
+    var t = '■[' + srcLabel(d.src) + ':' + redactTitle(d.title) + ']' + (d.tags.length ? '\nタグ：' + d.tags.join(' ') : '') + (d.text ? '\n' + d.text : '');
+    if (whole) t = '■[' + srcLabel(d.src) + ':' + redactTitle(d.title) + ']\n' + fullText(d);
     return redact(t).text.slice(0, budget || 1400);
   }
 
@@ -350,7 +427,7 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
   }
 
   var api = { fromKD: fromKD, fromQR: fromQR, fetchBox: fetchBox, loadFeed: loadFeed, retrieve: retrieve, material: material, buildPrompt: buildPrompt,
-    callAI: callAI, ask: ask, fullText: fullText, VERB: VERB, parseReply: parseReply, extractCode: extractCode, lintCode: lintCode, rulesText: rulesText, redact: redact, redactTitle: redactTitle, isSecret: isSecret, config: config, plain: plain, EXCLUDE_TAGS: EXCLUDE_TAGS };
+    callAI: callAI, ask: ask, fullText: fullText, fromPack: fromPack, mine: mine, exportRaw: exportRaw, srcLabel: srcLabel, VERB: VERB, parseReply: parseReply, extractCode: extractCode, lintCode: lintCode, rulesText: rulesText, redact: redact, redactTitle: redactTitle, isSecret: isSecret, config: config, plain: plain, EXCLUDE_TAGS: EXCLUDE_TAGS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.AICore = api;
 })(typeof window !== 'undefined' ? window : globalThis);
 
@@ -380,8 +457,9 @@ function idbOpen(){return new Promise((res,rej)=>{try{const r=indexedDB.open('ai
 async function idbGet(k){try{const d=await idbOpen();return await new Promise(res=>{const q=d.transaction('kv').objectStore('kv').get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>res(null)})}catch(_){return null}}
 async function idbSet(k,v){try{const d=await idbOpen();await new Promise(res=>{const t=d.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=()=>res();t.onerror=()=>res()})}catch(_){}}
 // ---- 知識の読み込み
-let FEED={docs:[],stat:{kd:0,qr:0},err:{}},loaded=false,loading=false;
-const allDocs=()=>FEED.docs.concat(memDocs());
+let FEED={docs:[],stat:{kd:0,qr:0},err:{}},loaded=false,loading=false,PACK=null,PKD=[],MINED=[];
+const setPack=p=>{PACK=p&&Array.isArray(p.entries)?p:null;PKD=PACK?A.fromPack(PACK):[]};
+const allDocs=()=>FEED.docs.concat(memDocs(),PKD);
 async function loadFeed(){
   if(loading)return;loading=true;$('hb').textContent='読み込み中…';$('hb').className='badge';
   try{
@@ -408,7 +486,7 @@ function paintHits(){
   if(!all.length){$('hits').innerHTML='';return}
   if(!q){L=all.slice().sort((a,b)=>b.updatedAt-a.updatedAt).slice(0,5);head='最近の項目'}
   else{L=A.retrieve(all,q,8,boost());const n=A.redactTitle(q).toLowerCase();if(L.length<8)all.forEach(d=>{if(L.length<8&&!L.includes(d)&&d.title.toLowerCase().indexOf(n)>=0)L.push(d)});head=L.length?'辞書・メモから '+L.length+'件（即時）':'一致する項目がありません（AIに聞いても材料はありません）'}
-  $('hits').innerHTML='<div class="dim" style="margin:6px 2px">'+esc(head)+'</div>'+L.map(d=>'<div class="card hit"><b>'+esc(A.redactTitle(d.title))+'</b> <span class="tag '+d.src+'">'+(d.src==='kd'?'辞書':d.src==='qr'?'メモ':'育')+'</span><span class="tg dim">'+esc(d.tags.slice(0,4).join(' · '))+'</span><div class="dim">'+esc(snip(d))+'</div><div class="row"><button class="sm pri" data-open="'+esc(d.id)+'">全文を見る</button><button class="sm" data-copyfull="'+esc(d.id)+'">全文コピー</button></div><pre class="code" hidden></pre></div>').join('')}
+  $('hits').innerHTML='<div class="dim" style="margin:6px 2px">'+esc(head)+'</div>'+L.map(d=>'<div class="card hit"><b>'+esc(A.redactTitle(d.title))+'</b> <span class="tag '+d.src+'">'+A.srcLabel(d.src)+'</span><span class="tg dim">'+esc(d.tags.slice(0,4).join(' · '))+'</span><div class="dim">'+esc(snip(d))+'</div><div class="row"><button class="sm pri" data-open="'+esc(d.id)+'">全文を見る</button><button class="sm" data-copyfull="'+esc(d.id)+'">全文コピー</button></div><pre class="code" hidden></pre></div>').join('')}
 
 // ---- 1日の使用回数
 function usage(){const d=new Date().toISOString().slice(0,10),u=jget('ah_usage',{});return u.d===d?u:{d,n:0}}
@@ -433,7 +511,7 @@ function renderAns(){
   if(L.removed)h+='<div class="dim">秘密らしい行を '+L.removed+' 行、送る前に伏せました</div>';
   (L.actions||[]).forEach((a,i)=>{h+='<div class="act"><b>'+actLabel(a)+'</b>'+(a.op==='table'?'<div class="dim">'+esc(a.title)+'：'+esc((a.rows[0]||[]).join(' / '))+'</div>':a.op==='flow'?'<div class="dim ans">'+esc(a.text)+'</div>':'')+'<div class="row"><button class="pri sm" data-act="'+i+'">table-pad で開く</button><button class="sm" data-copy="'+i+'">コピー</button></div></div>'});
   h+='<div class="row" id="fbrow"><button data-fb="1" class="sm"'+(L.fb?' disabled':'')+'>👍 役に立った</button><button data-fb="-1" class="sm"'+(L.fb?' disabled':'')+'>👎 違う</button><button data-adopt="1" class="sm"'+(L.adopted?' disabled':'')+'>✓ 採用して育てる</button></div><div id="adoptBox"></div></div>';
-  if(L.hits&&L.hits.length){h+='<div class="card"><h2>根拠にした材料（番号を押すと開きます）</h2>'+L.hits.map((d,i)=>'<div class="src" id="src'+(i+1)+'"><b>['+(i+1)+'] '+esc(A.redactTitle(d.title))+'</b> <span class="tag '+d.src+'">'+(d.src==='kd'?'辞書':d.src==='qr'?'メモ':'育てた答え')+'</span>'+(d.tags.length?'<span class="tg">'+esc(d.tags.slice(0,5).join(' · '))+'</span>':'')+'<pre hidden>'+esc(A.material(d,900))+'</pre></div>').join('')+'</div>'}
+  if(L.hits&&L.hits.length){h+='<div class="card"><h2>根拠にした材料（番号を押すと開きます）</h2>'+L.hits.map((d,i)=>'<div class="src" id="src'+(i+1)+'"><b>['+(i+1)+'] '+esc(A.redactTitle(d.title))+'</b> <span class="tag '+d.src+'">'+A.srcLabel(d.src)+'</span>'+(d.tags.length?'<span class="tg">'+esc(d.tags.slice(0,5).join(' · '))+'</span>':'')+'<pre hidden>'+esc(A.material(d,900))+'</pre></div>').join('')+'</div>'}
   o.innerHTML=h}
 async function doAsk(general){
   const q=$('q').value.trim();if(!q){toast('質問を入れてください');return}
@@ -477,11 +555,18 @@ async function copyText(s){try{await navigator.clipboard.writeText(s);toast('コ
 
 // ---- 知識タブ
 function paintKnow(){
-  const k=FEED.stat||{};$('kstat').innerHTML='<div><b>'+(k.kd||0)+'</b>辞書</div><div><b>'+(k.qr||0)+'</b>メモ</div><div><b>'+MEM.length+'</b>育てた答え</div>';
+  const k=FEED.stat||{};$('kstat').innerHTML='<div><b>'+(k.kd||0)+'</b>辞書</div><div><b>'+(k.qr||0)+'</b>メモ</div><div><b>'+PKD.length+'</b>辞書パック</div><div><b>'+MEM.length+'</b>育てた答え</div>';
+  paintPack();
   const er=FEED.err||{};$('kerr').textContent=Object.keys(er).length?Object.keys(er).map(x=>(x==='kd'?'辞書':x==='qr'?'メモ':'')+'：'+er[x]).join(' ／ '):'';
   const q=A.redactTitle($('ksearch').value||'').toLowerCase(),L=allDocs().filter(d=>!q||(d.title+' '+d.tags.join(' ')).toLowerCase().indexOf(q)>=0).sort((a,b)=>b.updatedAt-a.updatedAt).slice(0,60);
-  $('klist').innerHTML=L.length?L.map((d,i)=>'<div class="src"><b>'+esc(A.redactTitle(d.title))+'</b> <span class="tag '+d.src+'">'+(d.src==='kd'?'辞書':d.src==='qr'?'メモ':'育')+'</span><span class="tg">'+esc(d.tags.slice(0,4).join(' · '))+'</span> <button class="cite" data-k="'+esc(d.id)+'">開く</button><pre hidden></pre></div>').join(''):'<div class="dim">該当なし</div>'}
+  $('klist').innerHTML=L.length?L.map((d,i)=>'<div class="src"><b>'+esc(A.redactTitle(d.title))+'</b> <span class="tag '+d.src+'">'+A.srcLabel(d.src)+'</span><span class="tg">'+esc(d.tags.slice(0,4).join(' · '))+'</span> <button class="cite" data-k="'+esc(d.id)+'">開く</button><pre hidden></pre></div>').join(''):'<div class="dim">該当なし</div>'}
 
+// ---- 辞書パック・構文拾い・材料の書き出し
+function dl(name,text){try{const u=URL.createObjectURL(new Blob([text],{type:'application/json'})),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),3000);return true}catch(_){return false}}
+const ymd=()=>new Date().toISOString().slice(0,10).replace(/-/g,'');
+function paintPack(){const n=PACK?PACK.entries.length:0;$('pkInfo').textContent=n?'入っている項目：'+n+'件（作成 '+(PACK.builtAt?new Date(PACK.builtAt).toLocaleDateString('ja-JP'):'日付なし')+'）。聞く画面の即時検索・AIの根拠に使われます。AIを使わずに引けます。':'まだありません。PC のエージェントが作った dict-pack.json を読み込むか、下で自分のデータから拾った一覧を入れてください。'}
+async function pkSave(p){setPack(p);await idbSet('pack',p);paintPack();paintHead();paintKnow();paintHits()}
+function mnPaint(){$('mnList').innerHTML=MINED.length?'<div class="dim" style="margin:6px 0">'+MINED.length+'件（多い順・上位80件を表示）</div>'+MINED.slice(0,80).map(m=>'<div class="src"><b>'+esc(m.term)+'</b> <span class="tag">'+esc(m.lang)+'</span><span class="tg">'+m.count+'回 ／ '+m.sources.length+'件のメモ</span>'+(m.example?'<pre class="code" style="max-height:90px">'+esc(m.example)+'</pre>':'')+'</div>').join(''):''}
 // ---- 育てるタブ
 function paintRules(){$('rlist').innerHTML=RULES.length?RULES.slice().sort((a,b)=>(a.type==='ng'?0:1)-(b.type==='ng'?0:1)).map(r=>'<div class="rl"><span class="tag '+(r.type==='ng'?'ng':'okk')+'">'+(r.type==='ng'?'ダメ':'よい')+'</span><span>'+esc(r.text)+'</span><button class="sm" data-rdel="'+r.id+'">消す</button></div>').join(''):'<div class="dim">まだありません。</div>'}
 function paintGrow(){paintRules();
@@ -540,6 +625,21 @@ $('askBtn').addEventListener('click',()=>doAsk(false));
 let ht=null;$('q').addEventListener('input',()=>{clearTimeout(ht);ht=setTimeout(paintHits,120)});
 $('reload').addEventListener('click',loadFeed);
 $('ksearch').addEventListener('input',paintKnow);
+$('pkFile').addEventListener('click',()=>$('pkInput').click());
+$('pkInput').addEventListener('change',async e=>{const f=e.target.files&&e.target.files[0];e.target.value='';if(!f)return;
+  try{const p=JSON.parse(await f.text()),n=A.fromPack(p).length;if(!n)throw new Error('項目（entries）が見つかりません');await pkSave(p);$('pkMsg').textContent='読み込みました：'+n+'件'}catch(err){$('pkMsg').textContent='読み込めませんでした：'+((err&&err.message)||err)}});
+$('pkGet').addEventListener('click',async()=>{const c=A.config();if(!c.endpoint||!c.token){$('pkMsg').textContent='先に ⚙️ で接続を入れてください';return}
+  $('pkMsg').textContent='取り込み中…';try{const p=await A.fetchBox('dict-pack');if(!p)throw new Error('クラウドに辞書パックがありません（PC で「クラウドに置く」を先に）');const n=A.fromPack(p).length;if(!n)throw new Error('項目が見つかりません');await pkSave(p);$('pkMsg').textContent='取り込みました：'+n+'件'}catch(err){$('pkMsg').textContent='取り込めませんでした：'+((err&&err.message)||err)}});
+$('pkPut').addEventListener('click',async()=>{const c=A.config();if(!PACK){$('pkMsg').textContent='置くものがありません';return}if(!c.endpoint||!c.token){$('pkMsg').textContent='先に ⚙️ で接続を入れてください';return}
+  const body=JSON.stringify({data:PACK});if(body.length>20e6){$('pkMsg').textContent='大きすぎます（'+Math.round(body.length/1e6)+'MB）。分割してください';return}
+  try{const r=await fetch(c.endpoint+'/sync/dict-pack',{method:'PUT',headers:{Authorization:'Bearer '+c.token,'Content-Type':'application/json'},body});$('pkMsg').textContent=r.ok?'クラウドに置きました（'+Math.round(body.length/1024)+'KB）。iPhone の ai-hub で「クラウドから取り込む」を押してください':'置けませんでした（HTTP '+r.status+'）'}catch(err){$('pkMsg').textContent='通信できませんでした'}});
+$('pkOut').addEventListener('click',()=>{if(!PACK){$('pkMsg').textContent='書き出すものがありません';return}dl('knowledge-base__dict-pack_'+ymd()+'.json',JSON.stringify(PACK));$('pkMsg').textContent=PACK.entries.length+'件を書き出しました'});
+$('pkDel').addEventListener('click',async()=>{if(!PACK||!confirm('この端末の辞書パックを消しますか？（元のファイルは消えません）'))return;setPack(null);await idbSet('pack',null);paintPack();paintHead();paintKnow();paintHits();$('pkMsg').textContent='消しました'});
+$('mnGo').addEventListener('click',()=>{MINED=A.mine(allDocs());mnPaint();$('mnAdd').disabled=!MINED.length;$('mnMsg').textContent=MINED.length?'拾えました：'+MINED.length+'件。意味の説明は付いていません（週末エージェントが付けます）':'拾えるものがありませんでした（メモ・辞書が未読み込みかもしれません）'});
+$('mnAdd').addEventListener('click',async()=>{if(!MINED.length)return;const keep=(PACK?PACK.entries:[]).filter(e=>e.kind!=='mined'||!MINED.some(m=>m.id===e.id));
+  await pkSave({app:'dict-pack',version:1,builtAt:Date.now(),entries:keep.concat(MINED)});$('mnMsg').textContent='辞書パックに入れました（合計 '+(keep.length+MINED.length)+'件）。「📖 辞書パック」から書き出せます'});
+$('mnRaw').addEventListener('click',()=>{if(!loaded&&!FEED.docs.length){$('mnMsg').textContent='先にメモ・辞書を読み込んでください';return}
+  const raw=A.exportRaw(allDocs()),name='knowledge-base__raw_'+ymd()+'.json';dl(name,JSON.stringify(raw));$('mnMsg').textContent=raw.count+'件を書き出しました（'+name+'）。保護メモは入っていません。秘密らしい行 '+raw.redactedLines+' 行は伏せ済みです'});
 $('syncBtn').addEventListener('click',syncMem);$('expBtn').addEventListener('click',exportJSONL);$('cSave').addEventListener('click',saveCfg);
 $('cTest').addEventListener('click',async()=>{const c=A.config(),o=$('cRes');if(!c.endpoint||!c.token){o.textContent='エンドポイントとトークンを入れて「保存」してから押してください';return}
   o.textContent='試しています…';const lines=[];
@@ -568,11 +668,11 @@ document.addEventListener('click',e=>{
   if(t.dataset.gask){const g=GAP.find(x=>x.id===t.dataset.gask);if(g){$('q').value=g.q;document.querySelector('nav button[data-t=ask]').click()}return}
 });
 paintUsage();paintHead();paintKnow();paintGrow();
-(async()=>{const c=await idbGet('feed');if(c&&Array.isArray(c.docs)&&c.docs.length){FEED={docs:c.docs,stat:c.stat||{kd:0,qr:0},err:{}};loaded=true;paintHead();paintKnow();paintGrow();paintHits()}
+(async()=>{const pk=await idbGet('pack');if(pk)setPack(pk);paintPack();paintHead();paintHits();const c=await idbGet('feed');if(c&&Array.isArray(c.docs)&&c.docs.length){FEED={docs:c.docs,stat:c.stat||{kd:0,qr:0},err:{}};loaded=true;paintHead();paintKnow();paintGrow();paintHits()}
   if(A.config().endpoint&&A.config().token)loadFeed();else if(!(c&&c.docs&&c.docs.length)){$('hb').textContent='未接続';$('hb').className='badge ng';LAST=Object.assign({},{error:'まず ⚙️ で接続を入れてください。iPhoneのホーム画面アプリは、辞書・メモとは設定が別なので、この画面に1回だけ入れます。'});renderAns()}
 })();
 if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
-window.__ah={get LAST(){return LAST},get RULES(){return RULES},get MEM(){return MEM},get FB(){return FB},boost,allDocs};
+window.__ah={get PACK(){return PACK},get PKD(){return PKD},get MINED(){return MINED},get LAST(){return LAST},get RULES(){return RULES},get MEM(){return MEM},get FB(){return FB},boost,allDocs};
 })();
 </script>
 </body>

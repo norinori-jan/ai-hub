@@ -100,6 +100,74 @@
     return { docs: docs, stat: stat, err: err };
   }
 
+  // ---------- 辞書パック（週末エージェントが作る辞書）→ 文書 ----------
+  function srcLabel(src) { return src === 'kd' ? '辞書' : src === 'qr' ? 'メモ' : src === 'ah' ? '育てた答え' : src === 'pk' ? '辞書パック' : src; }
+  function packText(e) {
+    var L = [];
+    if (e.summary) L.push(e.summary);
+    if (e.form) L.push('【形】\n' + e.form);
+    if (e.parts && e.parts.length) L.push('【部品の意味】\n' + e.parts.map(function (p) { return Array.isArray(p) ? '- ' + p[0] + '：' + (p[1] || '') : '- ' + p; }).join('\n'));
+    if (e.example) L.push('【例】\n' + e.example);
+    if (e.mistakes && e.mistakes.length) L.push('【よくある間違い】\n' + e.mistakes.map(function (m) { return '- ' + m; }).join('\n'));
+    if (e.related && e.related.length) L.push('【関連】' + e.related.join('、'));
+    if (e.sources && e.sources.length) L.push('【出どころ（自分のメモ）】' + e.sources.map(function (x) { return x.title || x.id; }).join(' ／ '));
+    return L.join('\n\n');
+  }
+  function fromPack(pack) {
+    var E = pack && Array.isArray(pack.entries) ? pack.entries : [], out = [];
+    E.slice(0, 20000).forEach(function (e) {
+      if (!e || typeof e.term !== 'string' || !e.term.trim()) return;
+      var full = packText(e), id = String(e.id || (e.lang || 'x') + ':' + e.term);
+      out.push({ id: 'pk:' + id, src: 'pk', title: e.term.trim(), full: full, text: full.slice(0, 1800), tags: [e.lang, e.kind].concat(e.tags || []).filter(Boolean).map(String), kind: 'pack', updatedAt: e.updatedAt || (pack && pack.builtAt) || 0, link: (e.related || []).map(String) });
+    });
+    return out;
+  }
+  // ---------- 自分のデータから構文・コマンドを拾う（AI不使用） ----------
+  var MINE = [
+    { lang: 'ps', re: /\b(?:Get|Set|New|Remove|Copy|Move|Test|Join|Select|Where|ForEach|Sort|Out|Write|Invoke|Start|Stop|Add|Clear|Compare|ConvertFrom|ConvertTo|Convert|Expand|Export|Import|Find|Format|Measure|Read|Rename|Resolve|Split|Unblock|Enable|Disable|Install|Uninstall|Register|Restart|Show|Wait|Push|Pop)-[A-Z][A-Za-z]+\b/g },
+    { lang: 'js', re: /\b(?:document|window|navigator|localStorage|sessionStorage|indexedDB|JSON|Math|Object|Array|Promise|URL|Intl|Date|Number|String)\.[A-Za-z]+\b/g },
+    { lang: 'js', re: /\b(?:fetch|addEventListener|querySelectorAll|querySelector|getElementById|setTimeout|setInterval|requestAnimationFrame)(?=\()/g },
+    { lang: 'sql', re: /\b(?:SELECT|INSERT INTO|UPDATE|DELETE FROM|CREATE TABLE|LEFT JOIN|JOIN|GROUP BY|ORDER BY|WHERE|HAVING)\b/g }
+  ];
+  var CLI = /^\s*(?:PS [^>]*>|[$>%]\s*)?(git|gh|npm|npx|node|python3?|py|pip3?|curl|winget|wrangler|ssh|brew|claude|cd|ls|cp|mv|rm|mkdir|chmod|grep|find|cat|echo)\b(?:\s+([a-z][a-z-]*))?/;
+  function mine(docs, opts) {
+    opts = opts || {};
+    var map = {};
+    function hit(lang, term, d, line) {
+      var k = lang + '\u0000' + term, m = map[k] || (map[k] = { lang: lang, term: term, count: 0, docs: {}, ex: [] });
+      m.count++; m.docs[d.id] = d.title;
+      var l = line.trim().slice(0, 160);
+      if (l && m.ex.length < 3 && m.ex.indexOf(l) < 0 && !isSecret(l)) m.ex.push(l);
+    }
+    docs.forEach(function (d) {
+      if (d.src !== 'kd' && d.src !== 'qr') return;
+      fullText(d).split('\n').forEach(function (line) {
+        if (line.length > 400) return;
+        MINE.forEach(function (p) { var m; p.re.lastIndex = 0; while ((m = p.re.exec(line))) hit(p.lang, m[0].trim(), d, line); });
+        var c = CLI.exec(line);
+        if (c) { var sub = c[2] && !/^(the|and|for|is|to|a)$/.test(c[2]) ? ' ' + c[2] : ''; hit(c[1] === 'git' || c[1] === 'gh' ? c[1] : 'sh', c[1] + sub, d, line); }
+      });
+    });
+    var min = opts.min || 1;
+    return Object.keys(map).map(function (k) { return map[k]; }).filter(function (m) { return m.count >= min; })
+      .sort(function (a, b) { return b.count - a.count || a.term.localeCompare(b.term); }).slice(0, opts.max || 400)
+      .map(function (m) {
+        var ids = Object.keys(m.docs);
+        return { id: 'mn:' + m.lang + ':' + m.term, term: m.term, lang: m.lang, kind: 'mined', summary: '自分のメモで ' + m.count + '回、' + ids.length + '件のメモに出てきました（AIは使わず拾っただけ。意味の説明はまだありません）', example: m.ex.join('\n'), sources: ids.slice(0, 5).map(function (i) { return { id: i, title: m.docs[i] }; }), tags: ['自分の使い方'], count: m.count, updatedAt: Date.now() };
+      });
+  }
+  // エージェント（PCのClaude Code）に渡す材料。保護メモは入口で外れている。さらに秘密らしい行を伏せる
+  function exportRaw(docs) {
+    var skipped = 0, L = [];
+    docs.forEach(function (d) {
+      if (d.src !== 'kd' && d.src !== 'qr') return;
+      var r = redact(fullText(d)); skipped += r.removed;
+      L.push({ id: d.id, src: d.src, title: redactTitle(d.title), tags: d.tags, updatedAt: d.updatedAt, text: r.text });
+    });
+    var mined = mine(docs).map(function (m) { return { term: m.term, lang: m.lang, count: m.count, example: m.example, sources: m.sources.map(function (x) { return x.title; }) }; });
+    return { app: 'ai-hub-raw', version: 1, at: Date.now(), count: L.length, redactedLines: skipped, docs: L, mined: mined };
+  }
+
   // ---------- 根拠の検索（見出し語・タグ・本文の重みつき） ----------
   function retrieve(docs, query, k, boost) {
     boost = boost || {};
@@ -130,8 +198,8 @@
   }
   function fullText(d) { return d.full || d.text || ''; }
   function material(d, budget, whole) {
-    var t = '■[' + (d.src === 'kd' ? '辞書' : 'メモ') + ':' + redactTitle(d.title) + ']' + (d.tags.length ? '\nタグ：' + d.tags.join(' ') : '') + (d.text ? '\n' + d.text : '');
-    if (whole) t = '■[' + (d.src === 'kd' ? '辞書' : 'メモ') + ':' + redactTitle(d.title) + ']\n' + fullText(d);
+    var t = '■[' + srcLabel(d.src) + ':' + redactTitle(d.title) + ']' + (d.tags.length ? '\nタグ：' + d.tags.join(' ') : '') + (d.text ? '\n' + d.text : '');
+    if (whole) t = '■[' + srcLabel(d.src) + ':' + redactTitle(d.title) + ']\n' + fullText(d);
     return redact(t).text.slice(0, budget || 1400);
   }
 
@@ -233,6 +301,6 @@
   }
 
   var api = { fromKD: fromKD, fromQR: fromQR, fetchBox: fetchBox, loadFeed: loadFeed, retrieve: retrieve, material: material, buildPrompt: buildPrompt,
-    callAI: callAI, ask: ask, fullText: fullText, VERB: VERB, parseReply: parseReply, extractCode: extractCode, lintCode: lintCode, rulesText: rulesText, redact: redact, redactTitle: redactTitle, isSecret: isSecret, config: config, plain: plain, EXCLUDE_TAGS: EXCLUDE_TAGS };
+    callAI: callAI, ask: ask, fullText: fullText, fromPack: fromPack, mine: mine, exportRaw: exportRaw, srcLabel: srcLabel, VERB: VERB, parseReply: parseReply, extractCode: extractCode, lintCode: lintCode, rulesText: rulesText, redact: redact, redactTitle: redactTitle, isSecret: isSecret, config: config, plain: plain, EXCLUDE_TAGS: EXCLUDE_TAGS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.AICore = api;
 })(typeof window !== 'undefined' ? window : globalThis);
