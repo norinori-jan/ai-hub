@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f1117">
-<meta name="ah-rev" content="ah-r4">
+<meta name="ah-rev" content="ah-r5">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -24,6 +24,7 @@ header h1{font-size:18px;margin:0;flex:1}
 h2{font-size:14px;margin:0 0 8px;color:var(--dim);font-weight:600}
 textarea,input,select{width:100%;background:#0c0e14;color:var(--tx);border:1px solid var(--line);border-radius:10px;padding:10px;font:16px/1.5 inherit}
 textarea{resize:vertical}
+#fmt{width:auto;flex:1;min-width:0}
 button{font:inherit;color:var(--tx);background:#232838;border:1px solid var(--line);border-radius:10px;padding:9px 14px;min-height:42px}
 button.pri{background:var(--ac);border-color:var(--ac);color:#fff;font-weight:600}
 button.sm{min-height:34px;padding:5px 10px;font-size:13px}
@@ -66,8 +67,11 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
 <section id="s-ask">
   <div class="card">
     <textarea id="q" rows="3" placeholder="辞書とメモを根拠に聞く　例）CORSとは？　通信まわりの用語を表にして"></textarea>
+    <div class="row"><button class="sm" id="micBtn" type="button">🎤 声で入力</button><select id="fmt" aria-label="出力の形"><option value="auto">出力：おまかせ</option><option value="table">出力：表にする</option><option value="code">出力：コード</option><option value="text">出力：文章だけ</option></select></div>
     <label class="chk"><input type="checkbox" id="codeMode"> 💻 コードを書いてもらう（ルール帳を守らせる）</label>
+    <label class="chk"><input type="checkbox" id="voiceAuto"> 話し終えたら、そのまま AI に聞く</label>
     <div class="row"><button class="pri" id="askBtn">🤖 AIに聞く</button><span class="dim" id="usage"></span></div>
+    <div class="dim" id="micMsg"></div>
     <div class="dim" style="margin-top:6px">入力すると、辞書・メモから即座に探して下に出します（AIは使いません）。プロンプトやコマンドは、「全文を見る」でそのまま出ます。</div>
   </div>
   <div id="out"></div>
@@ -484,12 +488,15 @@ function paintHead(){const n=allDocs().length,e=Object.keys(FEED.err||{}).length
   $('banner').innerHTML=e?'<div class="card '+(FEED.docs.length?'warn':'err')+'"><b>'+(FEED.docs.length?'更新できませんでした（前回の内容で動いています）':'知識を読み込めていません')+'</b><div class="dim" style="color:inherit;margin-top:4px">'+esc(errHelp())+'</div></div>':''}
 // ---- 即時検索（AIを使わない）
 function snip(d){const t=(A.fullText(d)||'').replace(/\s+/g,' ');return t.slice(0,90)+(t.length>90?'…':'')}
+// ---- 声・カタカナの言い方を、辞書の英語の語に結びつける（検索用。画面の質問文は変えない）
+const ALIAS=[[/プロミス/,'Promise async await'],[/オール/,'all'],[/フェッチ/,'fetch'],[/アシンク|非同期/,'async await Promise'],[/パワーシェル|ぱわーしぇる/,'PowerShell'],[/ギット|ジット/,'git'],[/ジェイソン|ジェイソ/,'JSON'],[/ストレージ/,'localStorage IndexedDB'],[/インデックスdb|インデックスディービー|アイディービー/i,'IndexedDB'],[/サービスワーカー/,'Service Worker serviceworker'],[/イベント委譲|デリゲーション/,'event delegation'],[/正規表現|レジェックス/,'regex RegExp'],[/配列|アレイ/,'Array'],[/オブジェクト/,'Object'],[/クラス/,'class'],[/スプレッド/,'spread'],[/コピー/,'copy clipboard'],[/ダウンロード/,'download Blob'],[/タイムアウト/,'timeout AbortController'],[/リトライ/,'retry'],[/フレックス/,'flex flexbox'],[/グリッド/,'grid'],[/ダークモード/,'dark color-scheme'],[/セーフエリア/,'safe-area'],[/スニペット/,'snippet'],[/エスキューエル/,'SQL'],[/ジョイン/,'JOIN'],[/グループバイ/,'GROUP BY'],[/パイソン/,'Python'],[/エラー処理|例外/,'try catch error'],[/アーギュメント|引数/,'args argument'],[/ハッシュテーブル/,'hashtable'],[/環境変数/,'env environment'],[/文字化け|文字コード/,'encoding BOM UTF8'],[/貼り付け|ペースト/,'paste']];
+function qx(q){const ex=[];ALIAS.forEach(a=>{if(a[0].test(q))ex.push(a[1])});return ex.length?q+' '+ex.join(' '):q}
 function paintHits(){
   const q=$('q').value.trim(),all=allDocs();
   let L=[],head='';
   if(!all.length){$('hits').innerHTML='';return}
   if(!q){L=all.slice().sort((a,b)=>b.updatedAt-a.updatedAt).slice(0,5);head='最近の項目'}
-  else{L=A.retrieve(all,q,8,boost());const n=A.redactTitle(q).toLowerCase();if(L.length<8)all.forEach(d=>{if(L.length<8&&!L.includes(d)&&d.title.toLowerCase().indexOf(n)>=0)L.push(d)});head=L.length?'辞書・メモから '+L.length+'件（即時）':'一致する項目がありません（AIに聞いても材料はありません）'}
+  else{L=A.retrieve(all,qx(q),8,boost());const n=A.redactTitle(q).toLowerCase();if(L.length<8)all.forEach(d=>{if(L.length<8&&!L.includes(d)&&d.title.toLowerCase().indexOf(n)>=0)L.push(d)});head=L.length?'辞書・メモから '+L.length+'件（即時）':'一致する項目がありません（AIに聞いても材料はありません）'}
   $('hits').innerHTML='<div class="dim" style="margin:6px 2px">'+esc(head)+'</div>'+L.map(d=>'<div class="card hit"><b>'+esc(A.redactTitle(d.title))+'</b> <span class="tag '+d.src+'">'+A.srcLabel(d.src)+'</span><span class="tg dim">'+esc(d.tags.slice(0,4).join(' · '))+'</span><div class="dim">'+esc(snip(d))+'</div><div class="row"><button class="sm pri" data-open="'+esc(d.id)+'">全文を見る</button><button class="sm" data-copyfull="'+esc(d.id)+'">全文コピー</button></div><pre class="code" hidden></pre></div>').join('')}
 
 // ---- 1日の使用回数
@@ -525,8 +532,9 @@ async function doAsk(general){
   if(u.n>=lim&&!confirm('今日は '+u.n+'回 使いました（目安 '+lim+'回）。トークンを使います。続けますか？'))return;
   const b=$('askBtn');b.disabled=true;let sec=0;b.textContent='考え中…';const tmr=setInterval(()=>{b.textContent='考え中… '+(++sec)+'秒'},1000);
   try{
-    const code=$('codeMode').checked&&!general;
-    const r=await A.ask(allDocs(),q,{general:!!general,boost:boost(),code,rules:RULES});
+    const fmt=$('fmt').value,code=(fmt==='code'||$('codeMode').checked)&&!general;
+    const hint=fmt==='table'&&!general?'\n（出力：結果を表にして、actions に op:"table" で入れてください。1行目は列見出し）':fmt==='text'&&!general?'\n（出力：表やコードにせず、文章だけで答えてください）':'';
+    const r=await A.ask(allDocs(),qx(q)+hint,{general:!!general,boost:boost(),code,rules:RULES});
     if(!r.none)addUse();
     LAST=Object.assign({q},r);
     if(r.none){GAP=GAP.filter(g=>g.q!==q);GAP.push({id:uid(),q,at:Date.now()});saveMem()}
@@ -626,6 +634,21 @@ $('nav').addEventListener('click',e=>{const b=e.target.closest('button[data-t]')
   ['ask','know','grow','set'].forEach(t=>{$('s-'+t).hidden=t!==b.dataset.t});
   if(b.dataset.t==='set')paintCfg();if(b.dataset.t==='know')paintKnow();if(b.dataset.t==='grow')paintGrow();window.scrollTo(0,0)});
 $('askBtn').addEventListener('click',()=>doAsk(false));
+// ---- 声で入力（対応していない環境では、キーボードのマイクを案内する）
+let REC=null,RECON=false;
+function micMsg(t){$('micMsg').textContent=t||''}
+function startVoice(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){micMsg('この画面では声の入力が使えません。キーボードのマイク（🎤）で話すと、同じように入ります。');$('q').focus();return}
+  if(RECON&&REC){try{REC.stop()}catch(_){}return}
+  let got='';
+  try{REC=new SR();REC.lang='ja-JP';REC.interimResults=true;REC.continuous=false}catch(e){micMsg('声の入力を始められませんでした：'+((e&&e.message)||e));return}
+  REC.onstart=()=>{RECON=true;$('micBtn').textContent='⏹ 聞いています（押すと止まる）';micMsg('話してください…')};
+  REC.onresult=ev=>{let t='';for(let i=0;i<ev.results.length;i++)t+=ev.results[i][0].transcript;got=t;$('q').value=t;paintHits()};
+  REC.onerror=ev=>{const e=ev&&ev.error;micMsg(e==='not-allowed'||e==='service-not-allowed'?'マイクが許可されていません。設定でマイクを許可するか、キーボードのマイクを使ってください。':e==='no-speech'?'声が聞こえませんでした。もう一度どうぞ。':'声の入力でエラーになりました（'+e+'）。キーボードのマイクも使えます。')};
+  REC.onend=()=>{RECON=false;$('micBtn').textContent='🎤 声で入力';if(got){micMsg('聞き取り：'+got.slice(0,60)+'　直してから押せます');if($('voiceAuto').checked)doAsk()}};
+  try{REC.start()}catch(e){micMsg('声の入力を始められませんでした：'+((e&&e.message)||e))}}
+$('micBtn').addEventListener('click',startVoice);
 let ht=null;$('q').addEventListener('input',()=>{clearTimeout(ht);ht=setTimeout(paintHits,120)});
 $('reload').addEventListener('click',loadFeed);
 $('ksearch').addEventListener('input',paintKnow);
