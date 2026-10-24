@@ -1,22 +1,17 @@
 {
- "name": "統合AI",
- "short_name": "統合AI",
- "start_url": "./",
- "scope": "./",
- "display": "standalone",
- "background_color": "#0f1117",
- "theme_color": "#0f1117",
- "icons": [
-  {
-   "src": "icon-192.png",
-   "sizes": "192x192",
-   "type": "image/png"
-  },
-  {
-   "src": "icon-512.png",
-   "sizes": "512x512",
-   "type": "image/png",
-   "purpose": "any maskable"
-  }
- ]
+  "name": "ai-hub",
+  "short_name": "ai-hub",
+  "description": "Personal OS Hub",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0f1720",
+  "theme_color": "#0f1720",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧭</text></svg>",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
 }
