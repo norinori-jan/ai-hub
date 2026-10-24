@@ -842,19 +842,44 @@ $('s-plan').addEventListener('click',e=>{
     ['ask','know','plan','grow','set'].forEach(t=>{$('s-'+t).hidden=t!=='ask'});
     paintHits();localMake();window.scrollTo(0,0);toast('辞書から出しました（AIなし）')}});
 // ---- 声で入力（対応していない環境では、キーボードのマイクを案内する）
-let REC=null,RECON=false;
+// 止まっても、押して止めるまで自動で続けます。前の文字は消さず、続きに足します（何回でも録音できます）
+let REC=null,RECON=false,WANT=false,MIC={base:'',fin:'',sess:'',empty:0,got:false};
 function micMsg(t){$('micMsg').textContent=t||''}
+function micSet(){$('q').value=MIC.base+MIC.fin+MIC.sess;paintHits()}
+function micStop(why){
+  WANT=false;try{if(REC)REC.stop()}catch(_){}
+  if(!RECON)micDone(why)}
+function micDone(why){
+  RECON=false;$('micBtn').textContent='🎤 声で入力';
+  const t=$('q').value;
+  if(why)micMsg(why);else if(MIC.got)micMsg('聞き取り：'+t.slice(-60)+'　直してから押せます（もう一度押すと、続きに足します）');
+  if(MIC.got&&$('voiceAuto').checked)localMake();
+  MIC.got=false}
+function micLoop(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  let heard=false;MIC.sess='';
+  try{REC=new SR();REC.lang='ja-JP';REC.interimResults=true;REC.continuous=true}catch(e){WANT=false;micDone('声の入力を始められませんでした：'+((e&&e.message)||e));return}
+  REC.onstart=()=>{RECON=true;$('micBtn').textContent='⏹ 録音中（押すと止まります）';micMsg('話してください…　途切れても、止めるまで自動で続けます')};
+  REC.onresult=ev=>{let f='',p='';for(let i=0;i<ev.results.length;i++){const r=ev.results[i];if(r.isFinal)f+=r[0].transcript;else p+=r[0].transcript}
+    MIC.sess=f+p;heard=true;MIC.got=true;MIC.empty=0;micSet()};
+  REC.onerror=ev=>{const e=ev&&ev.error;
+    if(e==='not-allowed'||e==='service-not-allowed'){WANT=false;micMsg('マイクが許可されていません。設定でマイクを許可するか、キーボードのマイクを使ってください。')}
+    else if(e==='no-speech'||e==='aborted'){/* 無音。onend で自動的に続ける */}
+    else{WANT=false;micMsg('声の入力でエラーになりました（'+e+'）。キーボードのマイクも使えます。')}};
+  REC.onend=()=>{
+    MIC.fin+=MIC.sess;MIC.sess='';RECON=false;
+    if(WANT){
+      if(!heard){MIC.empty++}
+      if(MIC.empty>=4){WANT=false;micDone('声が聞こえないので、止めました。もう一度押すと続けられます。');return}
+      setTimeout(()=>{if(WANT)micLoop()},250);return}   // 自動で続ける（書いた文字は残る）
+    micDone()};
+  try{REC.start()}catch(e){WANT=false;micDone('声の入力を始められませんでした：'+((e&&e.message)||e))}}
 function startVoice(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){micMsg('この画面では声の入力が使えません。キーボードのマイク（🎤）で話すと、同じように入ります。');$('q').focus();return}
-  if(RECON&&REC){try{REC.stop()}catch(_){}return}
-  let got='';
-  try{REC=new SR();REC.lang='ja-JP';REC.interimResults=true;REC.continuous=false}catch(e){micMsg('声の入力を始められませんでした：'+((e&&e.message)||e));return}
-  REC.onstart=()=>{RECON=true;$('micBtn').textContent='⏹ 聞いています（押すと止まる）';micMsg('話してください…')};
-  REC.onresult=ev=>{let t='';for(let i=0;i<ev.results.length;i++)t+=ev.results[i][0].transcript;got=t;$('q').value=t;paintHits()};
-  REC.onerror=ev=>{const e=ev&&ev.error;micMsg(e==='not-allowed'||e==='service-not-allowed'?'マイクが許可されていません。設定でマイクを許可するか、キーボードのマイクを使ってください。':e==='no-speech'?'声が聞こえませんでした。もう一度どうぞ。':'声の入力でエラーになりました（'+e+'）。キーボードのマイクも使えます。')};
-  REC.onend=()=>{RECON=false;$('micBtn').textContent='🎤 声で入力';if(got){micMsg('聞き取り：'+got.slice(0,60)+'　直してから押せます');if($('voiceAuto').checked)localMake()}};
-  try{REC.start()}catch(e){micMsg('声の入力を始められませんでした：'+((e&&e.message)||e))}}
+  if(WANT){micStop();return}   // 録音中に押すと、止める
+  WANT=true;MIC={base:$('q').value,fin:'',sess:'',empty:0,got:false};   // いま入っている文字を残して、続きに足す
+  micLoop()}
 $('micBtn').addEventListener('click',startVoice);
 let ht=null;$('q').addEventListener('input',()=>{clearTimeout(ht);ht=setTimeout(paintHits,120)});
 $('reload').addEventListener('click',loadFeed);
