@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f1117">
-<meta name="ah-rev" content="ah-r7">
+<meta name="ah-rev" content="ah-r8">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -75,6 +75,13 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
     <div class="dim" id="micMsg"></div>
     <div class="dim" style="margin-top:6px">入力すると、辞書・メモから即座に探して下に出します（AIは使いません）。プロンプトやコマンドは、「全文を見る」でそのまま出ます。</div>
   </div>
+  <details class="card" id="pasteBox"><summary><b>📋 普段のAIに聞いて、返事を貼る（API・トークン不要）</b></summary>
+    <div class="dim" style="margin:6px 0">① 質問を作ってコピー → ② claude.ai などの普段のAIに貼って送る → ③ 返事をコピーして、下に貼って取り込む。表・流れ・コードは、そのまま table-pad やコピーに使えます。</div>
+    <div class="row"><button class="pri sm" id="pasteMake">① コピペ用の質問を作ってコピー</button></div>
+    <div class="dim" id="pasteInfo"></div>
+    <textarea id="pasteIn" rows="5" placeholder="② の返事をここに貼る"></textarea>
+    <div class="row"><button class="pri sm" id="pasteTake">③ 返事を取り込む</button><button class="sm" id="pasteClr">クリア</button></div>
+  </details>
   <div id="lout"></div>
   <div id="out"></div>
   <div id="hits"></div>
@@ -267,6 +274,45 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
       out.push({ id: 'pk:' + id, src: 'pk', title: e.term.trim(), full: full, text: full.slice(0, 1800), tags: [e.lang, e.kind].concat(e.tags || []).filter(Boolean).map(String), kind: 'pack', updatedAt: e.updatedAt || (pack && pack.builtAt) || 0, link: (e.related || []).map(String) });
     });
     return out;
+  }
+  // ---------- コピペ方式（API不使用）：普段のAIに貼る質問を作る／返事を取り込む ----------
+  function makePaste(docs, question, opts) {
+    opts = opts || {};
+    var hits = retrieve(docs, question, opts.code ? 5 : 6, opts.boost), text;
+    if (!hits.length) return { text: '', hits: [], removed: 0, none: true };
+    if (opts.code) {
+      var mt = hits.map(function (d, i) { return '【' + (i + 1) + '】' + material(d, 1600); }).join('\n\n');
+      text = CODE_HEAD + '\n\n' + rulesText(opts.rules) + '\n\n【材料】\n' + mt + '\n\n【頼みたいこと】\n' + question;
+    } else {
+      text = buildPrompt(question, hits);
+    }
+    var r = redact(text);
+    return { text: r.text, hits: hits, removed: r.removed, none: false };
+  }
+  function mdTables(text) {
+    var L = String(text || '').split('\n'), out = [], i = 0;
+    while (i < L.length) {
+      if (/^\s*\|.*\|\s*$/.test(L[i]) && i + 1 < L.length && /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$/.test(L[i + 1])) {
+        var rows = [], j = i;
+        while (j < L.length && /^\s*\|.*\|\s*$/.test(L[j])) {
+          if (j !== i + 1) rows.push(L[j].trim().replace(/^\||\|$/g, '').split('|').map(function (c) { return cell(c.replace(/\*\*/g, '')); }));
+          j++;
+        }
+        if (rows.length >= 2) out.push({ op: 'table', title: '貼り付けた表', rows: rows.slice(0, 200) });
+        i = j;
+      } else i++;
+    }
+    return out;
+  }
+  function parsePasted(raw) {
+    var text = String(raw || '').trim(), p = parseReply(text), acts = p.actions.slice(), jsonOk = acts.length > 0 || /\{\s*"answer"/.test(text);
+    var answer = p.answer, code = extractCode(text).filter(function (c) { return !/^(json)?$/.test(c.lang) || !/^\s*\{[\s\S]*"answer"/.test(c.code); }).map(function (b) { b.warn = lintCode(b); return b; });
+    if (!jsonOk) {
+      mdTables(text).forEach(function (t) { if (acts.length < 4) acts.push(t); });
+      var fl = text.split('\n').map(function (l) { return l.replace(/^[\s>*\-\d.)]+/, '').trim(); }).filter(function (l) { return /^[^|`]{1,40}\s*->\s*[^|`]{1,40}$/.test(l); });
+      if (fl.length >= 2 && acts.length < 4) acts.push({ op: 'flow', title: '貼り付けた流れ', text: fl.slice(0, 60).join('\n') });
+    }
+    return { answer: answer, actions: acts, code: code, isCode: code.length > 0 && !jsonOk, fromJson: jsonOk };
   }
   // ---------- 辞書だけで作る（AI不使用）：検索結果を表・流れ・コード枠にする ----------
   function cellOf(x, n) { return String(x == null ? '' : x).replace(/[\t\r\n]+/g, ' ').replace(/->/g, '→').trim().slice(0, n || 60); }
@@ -530,7 +576,7 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
   }
 
   var api = { fromKD: fromKD, fromQR: fromQR, fetchBox: fetchBox, loadFeed: loadFeed, retrieve: retrieve, material: material, buildPrompt: buildPrompt,
-    callAI: callAI, ask: ask, fullText: fullText, fromPack: fromPack, localTable: localTable, localFlow: localFlow, localSnippets: localSnippets, plan: plan, planActs: planActs, mine: mine, exportRaw: exportRaw, srcLabel: srcLabel, VERB: VERB, parseReply: parseReply, extractCode: extractCode, lintCode: lintCode, rulesText: rulesText, redact: redact, redactTitle: redactTitle, isSecret: isSecret, config: config, plain: plain, EXCLUDE_TAGS: EXCLUDE_TAGS };
+    callAI: callAI, ask: ask, fullText: fullText, fromPack: fromPack, makePaste: makePaste, parsePasted: parsePasted, localTable: localTable, localFlow: localFlow, localSnippets: localSnippets, plan: plan, planActs: planActs, mine: mine, exportRaw: exportRaw, srcLabel: srcLabel, VERB: VERB, parseReply: parseReply, extractCode: extractCode, lintCode: lintCode, rulesText: rulesText, redact: redact, redactTitle: redactTitle, isSecret: isSecret, config: config, plain: plain, EXCLUDE_TAGS: EXCLUDE_TAGS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.AICore = api;
 })(typeof window !== 'undefined' ? window : globalThis);
 
@@ -730,6 +776,23 @@ $('nav').addEventListener('click',e=>{const b=e.target.closest('button[data-t]')
   if(b.dataset.t==='plan')paintPlan();
   if(b.dataset.t==='set')paintCfg();if(b.dataset.t==='know')paintKnow();if(b.dataset.t==='grow')paintGrow();window.scrollTo(0,0)});
 $('askBtn').addEventListener('click',()=>doAsk(false));
+// ---- コピペ方式（API・トークン不要）
+let PHITS=null;
+function fmtHint(fmt){return fmt==='table'?'\n（出力：結果を表にして、actions に op:"table" で入れてください。1行目は列見出し）':fmt==='flow'?'\n（出力：結果を流れ図にして、actions に op:"flow" で入れてください。1行に「A -> B」）':fmt==='text'?'\n（出力：表やコードにせず、文章だけで答えてください）':''}
+$('pasteMake').addEventListener('click',()=>{
+  const q=$('q').value.trim();if(!q){toast('先に質問を入れる（話す）');return}
+  if(!allDocs().length){$('pasteInfo').textContent='辞書がまだ読み込めていません。📚 で読み込み直してください。';return}
+  const fmt=$('fmt').value,code=fmt==='code'||$('codeMode').checked;
+  const m=A.makePaste(allDocs(),qx(q)+fmtHint(fmt),{code,rules:RULES,boost:boost()});
+  if(m.none){$('pasteInfo').textContent='辞書には、この話の材料がありません。そのまま普段のAIに質問してください（材料は付きません）。';return}
+  PHITS=m.hits;copyText(m.text);
+  $('pasteInfo').textContent='コピーしました（'+m.text.length+'字・材料 '+m.hits.length+'件'+(m.removed?'・秘密らしい行 '+m.removed+' 行を伏せました':'')+'）。普段のAIに貼って送り、返事をコピーしてください。'});
+$('pasteTake').addEventListener('click',()=>{
+  const t=$('pasteIn').value.trim();if(!t){toast('返事を貼ってください');return}
+  const r=A.parsePasted(A.redact(t).text);
+  LAST={q:$('q').value.trim()||'（貼り付け）',answer:r.answer,actions:r.actions,code:r.code,isCode:r.isCode,hits:PHITS||curHits(),removed:0,none:false,fromPaste:true};
+  renderAns();$('out').scrollIntoView({behavior:'smooth'});toast('取り込みました（トークン0）')});
+$('pasteClr').addEventListener('click',()=>{$('pasteIn').value='';$('pasteInfo').textContent=''});
 // ---- 辞書だけで作る（AIなし）
 let LH=[],LACT=null;
 function curHits(){
