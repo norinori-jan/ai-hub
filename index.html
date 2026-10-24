@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f1117">
-<meta name="ah-rev" content="ah-r5">
+<meta name="ah-rev" content="ah-r6">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -93,6 +93,15 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
   <div class="card"><input id="ksearch" type="search" placeholder="題・タグで絞る"><div id="klist"></div></div>
 </section>
 
+<section id="s-plan" hidden>
+  <div class="card"><h2>🧭 いま何をすればいいか</h2><div class="stat" id="pstat"></div><div class="dim" id="pnote"></div></div>
+  <div class="card"><h2>今日やる順（上から）</h2><div id="pqueue"></div></div>
+  <div class="card"><h2>表・流れにする（table-pad で開きます）</h2>
+    <div class="row"><button class="pri sm" id="pShelf">📊 棚ごとの次の一手を表に</button><button class="pri sm" id="pFlow">🔀 今日の流れを作る</button><button class="sm" id="pAll">📋 全項目を表に</button></div>
+    <div class="dim" style="margin-top:6px">AIは使いません（辞書の理解度・参照数から計算しています）。理解度を変えるのは辞書アプリで、項目を開いて3つから選びます。ここで「説明させて採用」すると、答えがこのアプリの「育てた答え」になり、次から根拠に使われます。</div></div>
+  <div class="card"><h2>棚（タグ）ごと</h2><div id="pshelf"></div></div>
+</section>
+
 <section id="s-grow" hidden>
   <div class="card"><h2>育ち具合</h2><div class="stat" id="gstat"></div>
     <div class="dim" style="margin-top:8px">答えを「✓採用」すると、この辞書の一部になり、次から根拠に使われます。👍は根拠を上へ、👎は下へ動かします。</div></div>
@@ -123,6 +132,7 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
 <nav id="nav">
   <button data-t="ask" class="on"><span>💬</span>聞く</button>
   <button data-t="know"><span>📚</span>知識</button>
+  <button data-t="plan"><span>🧭</span>整理</button>
   <button data-t="grow"><span>🌱</span>育てる</button>
   <button data-t="set"><span>⚙️</span>設定</button>
 </nav>
@@ -191,7 +201,7 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
       });
       var fp = [String(e.term)]; if (e.oneLine) fp.push('一言：' + e.oneLine); if (e.note) fp.push('自分の理解：\n' + e.note);
       (by[e.id] || []).forEach(function (q) { if (!q.sensitive) fp.push('――――\nQ：' + (q.question || '') + '\n\nA：\n' + (q.answer || '') + (q.judgment ? '\n\n自分の判断：\n' + q.judgment : '')); });
-      out.push({ id: 'kd:' + e.id, src: 'kd', title: String(e.term), full: fp.join('\n\n'), text: parts.join('\n'), tags: (e.tags || []).map(String), kind: e.kind || 'term', updatedAt: e.updatedAt || 0, link: (e.related || []).map(String) });
+      out.push({ id: 'kd:' + e.id, src: 'kd', title: String(e.term), full: fp.join('\n\n'), text: parts.join('\n'), tags: (e.tags || []).map(String), kind: e.kind || 'term', updatedAt: e.updatedAt || 0, link: (e.related || []).map(String), und: e.understanding || 'unknown', body: !!(e.oneLine || e.note || (by[e.id] || []).length), rid: String(e.id) });
     });
     return out;
   }
@@ -255,6 +265,60 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
       out.push({ id: 'pk:' + id, src: 'pk', title: e.term.trim(), full: full, text: full.slice(0, 1800), tags: [e.lang, e.kind].concat(e.tags || []).filter(Boolean).map(String), kind: 'pack', updatedAt: e.updatedAt || (pack && pack.builtAt) || 0, link: (e.related || []).map(String) });
     });
     return out;
+  }
+  // ---------- 整理：辞書の理解度から「次にやること」を出す（AI不使用） ----------
+  var UNDL = { unknown: '未理解', learning: '理解中', known: '理解済' };
+  function plan(docs) {
+    var K = (docs || []).filter(function (d) { return d && d.src === 'kd'; }).slice(0, 1500);
+    var stat = { n: K.length, unknown: 0, learning: 0, known: 0, empty: 0, noUnd: 0 };
+    var byRid = {}, low = K.map(function (d) { return (d.full || d.text || '').toLowerCase(); });
+    K.forEach(function (d) { byRid[d.rid] = d; });
+    var refs = K.map(function () { return 0; });
+    K.forEach(function (d, i) {
+      var t = String(d.title || '').toLowerCase().trim(), c = 0;
+      (d.link || []).forEach(function (r) { if (byRid[r] || K.some(function (x) { return String(x.title).toLowerCase() === String(r).toLowerCase(); })) c++; });
+      if (t.length >= 3) low.forEach(function (tx, j) { if (j !== i && tx.indexOf(t) >= 0) c++; });
+      refs[i] = c;
+      if (d.und === undefined) stat.noUnd++;
+      var u = d.und === 'known' || d.und === 'learning' ? d.und : 'unknown';
+      stat[u]++; if (!d.body) stat.empty++;
+    });
+    var tags = {};
+    K.forEach(function (d) {
+      var u = d.und === 'known' || d.und === 'learning' ? d.und : 'unknown';
+      (d.tags.length ? d.tags : ['（棚なし）']).forEach(function (t) { var o = tags[t] || (tags[t] = { tag: t, n: 0, unknown: 0, learning: 0, known: 0, empty: 0 }); o.n++; o[u]++; if (!d.body) o.empty++; });
+    });
+    var shelves = Object.keys(tags).map(function (k) {
+      var o = tags[k]; o.pct = Math.round(o.known / o.n * 100);
+      if (o.known / o.n >= 0.7) o.next = '復習だけ（3日後・7日後に見返す）';
+      else if (o.learning > 0) o.next = '「理解中」の ' + o.learning + '件を先に仕上げる';
+      else if (o.empty / o.n >= 0.6) o.next = '中身が空が多い。上位3件だけAIに説明させて「一言」を書く';
+      else o.next = '上位3件を読み返して「理解中」にする';
+      return o;
+    }).sort(function (a, b) { return (b.unknown - a.unknown) || (b.n - a.n); }).slice(0, 40);
+    var queue = K.map(function (d, i) {
+      var u = d.und === 'known' ? 'known' : d.und === 'learning' ? 'learning' : 'unknown';
+      var score = (u === 'unknown' ? 3 : u === 'learning' ? 2 : 0) + refs[i] + (d.body ? 0.5 : 0);
+      return { id: d.id, title: d.title, tag: d.tags[0] || '（棚なし）', und: u, refs: refs[i], empty: !d.body, score: score,
+        action: u === 'known' ? '復習（見返すだけ）' : (!d.body ? 'AIに説明させて、「一言」を書く' : u === 'learning' ? '読み返して、自分の言葉で「一言」を直す' : '読み返して「理解中」にする') };
+    }).filter(function (x) { return x.und !== 'known'; }).sort(function (a, b) { return b.score - a.score; }).slice(0, 7);
+    var all = K.map(function (d, i) {
+      var u = d.und === 'known' ? 'known' : d.und === 'learning' ? 'learning' : 'unknown';
+      return [d.title, d.tags[0] || '（棚なし）', UNDL[u], refs[i], d.body ? 'あり' : '空', u === 'known' ? '復習' : (!d.body ? '説明させる' : '読み返す')];
+    });
+    return { stat: stat, shelves: shelves, queue: queue, all: all };
+  }
+  function planActs(pl) {
+    var cl = function (x) { return String(x == null ? '' : x).replace(/[\t\r\n]+/g, ' ').trim(); };
+    var acts = {};
+    acts.shelves = { op: 'table', title: '棚ごとの次の一手', rows: [['棚', '件数', '未理解', '理解中', '理解済', '次の一手']].concat(pl.shelves.map(function (o) { return [cl(o.tag), o.n, o.unknown, o.learning, o.known, cl(o.next)]; })) };
+    acts.all = { op: 'table', title: '辞書の全項目と次の一手', rows: [['項目', '棚', '理解度', '参照', '中身', '次の一手']].concat(pl.all.slice(0, 150).map(function (r) { return r.map(cl); })) };
+    var lines = ['開始 -> 1 ' + cl((pl.queue[0] || { title: '（なし）' }).title).slice(0, 16)];
+    pl.queue.forEach(function (q, i) { var nx = pl.queue[i + 1]; lines.push('1 ' .replace('1', String(i + 1)) + cl(q.title).slice(0, 16) + ' -> ' + (nx ? (i + 2) + ' ' + cl(nx.title).slice(0, 16) : '理解度を更新')); });
+    lines[0] = '開始 -> 1 ' + cl((pl.queue[0] || { title: '（なし）' }).title).slice(0, 16);
+    lines.push('理解度を更新 -> 終わり');
+    acts.flow = { op: 'flow', title: '今日の学習の流れ', text: lines.join('\n') };
+    return acts;
   }
   // ---------- 自分のデータから構文・コマンドを拾う（AI不使用） ----------
   var MINE = [
@@ -435,7 +499,7 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
   }
 
   var api = { fromKD: fromKD, fromQR: fromQR, fetchBox: fetchBox, loadFeed: loadFeed, retrieve: retrieve, material: material, buildPrompt: buildPrompt,
-    callAI: callAI, ask: ask, fullText: fullText, fromPack: fromPack, mine: mine, exportRaw: exportRaw, srcLabel: srcLabel, VERB: VERB, parseReply: parseReply, extractCode: extractCode, lintCode: lintCode, rulesText: rulesText, redact: redact, redactTitle: redactTitle, isSecret: isSecret, config: config, plain: plain, EXCLUDE_TAGS: EXCLUDE_TAGS };
+    callAI: callAI, ask: ask, fullText: fullText, fromPack: fromPack, plan: plan, planActs: planActs, mine: mine, exportRaw: exportRaw, srcLabel: srcLabel, VERB: VERB, parseReply: parseReply, extractCode: extractCode, lintCode: lintCode, rulesText: rulesText, redact: redact, redactTitle: redactTitle, isSecret: isSecret, config: config, plain: plain, EXCLUDE_TAGS: EXCLUDE_TAGS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.AICore = api;
 })(typeof window !== 'undefined' ? window : globalThis);
 
@@ -631,9 +695,31 @@ function saveCfg(){
 // ---- イベント
 $('nav').addEventListener('click',e=>{const b=e.target.closest('button[data-t]');if(!b)return;
   document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b));
-  ['ask','know','grow','set'].forEach(t=>{$('s-'+t).hidden=t!==b.dataset.t});
+  ['ask','know','plan','grow','set'].forEach(t=>{$('s-'+t).hidden=t!==b.dataset.t});
+  if(b.dataset.t==='plan')paintPlan();
   if(b.dataset.t==='set')paintCfg();if(b.dataset.t==='know')paintKnow();if(b.dataset.t==='grow')paintGrow();window.scrollTo(0,0)});
 $('askBtn').addEventListener('click',()=>doAsk(false));
+// ---- 整理タブ：辞書の理解度から「次にやること」を出す
+let PLAN=null,PACTS=null;
+function paintPlan(){
+  PLAN=A.plan(allDocs());const k=PLAN.stat;PACTS=A.planActs(PLAN);
+  if(!k.n){$('pstat').innerHTML='';$('pnote').textContent='辞書の項目がまだ読み込めていません。📚 で読み込み直してください。';$('pqueue').innerHTML='';$('pshelf').innerHTML='';return}
+  $('pstat').innerHTML='<div><b>'+k.n+'</b>辞書</div><div><b>'+k.unknown+'</b>未理解</div><div><b>'+k.learning+'</b>理解中</div><div><b>'+k.known+'</b>理解済</div>';
+  $('pnote').textContent=(k.noUnd?'古い保存のままで理解度が入っていません。📚 の「読み込み直す」を押してください。 ':'')+(k.empty?'中身（一言・メモ）が空の項目が '+k.empty+' 件あります。空のままでは「理解中」にしても続きません。まず中身を作るのが先です。':'');
+  $('pqueue').innerHTML=PLAN.queue.length?PLAN.queue.map((q,i)=>'<div class="act"><b>'+(i+1)+'. '+esc(A.redactTitle(q.title))+'</b> <span class="tag">'+esc(q.tag)+'</span><div class="dim">'+esc(q.und==='learning'?'理解中':'未理解')+'・参照 '+q.refs+'・'+(q.empty?'中身が空':'中身あり')+'</div><div class="ans">→ '+esc(q.action)+'</div><div class="row">'+(q.empty||q.und!=='known'?'<button class="pri sm" data-explain="'+i+'">🤖 説明させる（聞くへ）</button>':'')+'</div></div>').join(''):'<div class="dim">未理解・理解中の項目はありません。復習だけです。</div>';
+  $('pshelf').innerHTML=PLAN.shelves.map(o=>'<div class="src"><b>#'+esc(o.tag)+'</b> <span class="dim">'+o.n+'件・未理解 '+o.unknown+'・理解中 '+o.learning+'・理解済 '+o.known+'</span><div class="ans">→ '+esc(o.next)+'</div></div>').join('')||'<div class="dim">なし</div>'}
+$('s-plan').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b||!PLAN)return;
+  if(b.id==='pShelf')return sendAct(PACTS.shelves);
+  if(b.id==='pFlow'){if(!PLAN.queue.length){toast('今日やる項目がありません');return}return sendAct(PACTS.flow)}
+  if(b.id==='pAll')return sendAct(PACTS.all);
+  if(b.dataset.explain!==undefined){
+    const q=PLAN.queue[+b.dataset.explain];if(!q)return;
+    $('q').value='「'+q.title+'」を、私の辞書とメモを根拠に、やさしく3行で説明して。材料にないことは「材料にありません」と書いて。';
+    $('fmt').value='text';$('codeMode').checked=false;
+    document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x.dataset.t==='ask'));
+    ['ask','know','plan','grow','set'].forEach(t=>{$('s-'+t).hidden=t!=='ask'});
+    paintHits();window.scrollTo(0,0);toast('質問を入れました。🤖 を押すと説明が出ます。✓採用で辞書に残せます')}});
 // ---- 声で入力（対応していない環境では、キーボードのマイクを案内する）
 let REC=null,RECON=false;
 function micMsg(t){$('micMsg').textContent=t||''}
