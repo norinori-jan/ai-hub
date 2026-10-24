@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f1117">
-<meta name="ah-rev" content="ah-r6">
+<meta name="ah-rev" content="ah-r7">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -67,13 +67,15 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
 <section id="s-ask">
   <div class="card">
     <textarea id="q" rows="3" placeholder="辞書とメモを根拠に聞く　例）CORSとは？　通信まわりの用語を表にして"></textarea>
-    <div class="row"><button class="sm" id="micBtn" type="button">🎤 声で入力</button><select id="fmt" aria-label="出力の形"><option value="auto">出力：おまかせ</option><option value="table">出力：表にする</option><option value="code">出力：コード</option><option value="text">出力：文章だけ</option></select></div>
+    <div class="row"><button class="sm" id="micBtn" type="button">🎤 声で入力</button><select id="fmt" aria-label="出力の形"><option value="auto">出力：おまかせ</option><option value="table">出力：表にする</option><option value="flow">出力：流れ図にする</option><option value="code">出力：コード</option><option value="text">出力：文章だけ</option></select></div>
     <label class="chk"><input type="checkbox" id="codeMode"> 💻 コードを書いてもらう（ルール帳を守らせる）</label>
-    <label class="chk"><input type="checkbox" id="voiceAuto"> 話し終えたら、そのまま AI に聞く</label>
-    <div class="row"><button class="pri" id="askBtn">🤖 AIに聞く</button><span class="dim" id="usage"></span></div>
+    <label class="chk"><input type="checkbox" id="voiceAuto"> 話し終えたら、そのまま辞書から作る（AIなし）</label>
+    <div class="row"><button class="pri" id="localBtn">⚡ 辞書だけで作る（AIなし・無料）</button></div>
+    <div class="row"><button class="sm" id="askBtn">🤖 AIにも聞く（トークンを使う）</button><span class="dim" id="usage"></span></div>
     <div class="dim" id="micMsg"></div>
     <div class="dim" style="margin-top:6px">入力すると、辞書・メモから即座に探して下に出します（AIは使いません）。プロンプトやコマンドは、「全文を見る」でそのまま出ます。</div>
   </div>
+  <div id="lout"></div>
   <div id="out"></div>
   <div id="hits"></div>
 </section>
@@ -98,7 +100,7 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
   <div class="card"><h2>今日やる順（上から）</h2><div id="pqueue"></div></div>
   <div class="card"><h2>表・流れにする（table-pad で開きます）</h2>
     <div class="row"><button class="pri sm" id="pShelf">📊 棚ごとの次の一手を表に</button><button class="pri sm" id="pFlow">🔀 今日の流れを作る</button><button class="sm" id="pAll">📋 全項目を表に</button></div>
-    <div class="dim" style="margin-top:6px">AIは使いません（辞書の理解度・参照数から計算しています）。理解度を変えるのは辞書アプリで、項目を開いて3つから選びます。ここで「説明させて採用」すると、答えがこのアプリの「育てた答え」になり、次から根拠に使われます。</div></div>
+    <div class="dim" style="margin-top:6px">AIは使いません（辞書の理解度・参照数から計算しています）。理解度を変えるのは辞書アプリで、項目を開いて3つから選びます。自分の中身が空の項目は、AIに聞かなくても、辞書パックの同じ語の説明を見て、一言を書けます。</div></div>
   <div class="card"><h2>棚（タグ）ごと</h2><div id="pshelf"></div></div>
 </section>
 
@@ -263,6 +265,35 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
       if (seen[id] !== undefined) { if (ts < out[seen[id]].updatedAt) return; out.splice(seen[id], 1); Object.keys(seen).forEach(function (k) { if (seen[k] > seen[id]) seen[k]--; }); }
       seen[id] = out.length;
       out.push({ id: 'pk:' + id, src: 'pk', title: e.term.trim(), full: full, text: full.slice(0, 1800), tags: [e.lang, e.kind].concat(e.tags || []).filter(Boolean).map(String), kind: 'pack', updatedAt: e.updatedAt || (pack && pack.builtAt) || 0, link: (e.related || []).map(String) });
+    });
+    return out;
+  }
+  // ---------- 辞書だけで作る（AI不使用）：検索結果を表・流れ・コード枠にする ----------
+  function cellOf(x, n) { return String(x == null ? '' : x).replace(/[\t\r\n]+/g, ' ').replace(/->/g, '→').trim().slice(0, n || 60); }
+  function secOf(full, name) { var m = String(full || '').match(new RegExp('【' + name + '】\\n([\\s\\S]*?)(?:\\n\\n【|$)')); return m ? m[1].trim() : ''; }
+  function shortTitle(t) { return cellOf(String(t || '').replace(/（[^）]*）/g, '').replace(/\([^)]*\)/g, ''), 18) || cellOf(t, 18); }
+  function localTable(hits) {
+    var rows = [['項目', '種類', '要点', '形（先頭の行）', '出どころ']];
+    (hits || []).forEach(function (d) {
+      var first = String(d.text || '').split('\n').filter(function (l) { return l.trim(); })[0] || '';
+      var form = secOf(d.full, '形').split('\n')[0] || '';
+      rows.push([cellOf(d.title, 30), cellOf(d.kind, 10), cellOf(first.replace(/^一言：/, ''), 60), cellOf(form, 60), srcLabel(d.src)]);
+    });
+    return { op: 'table', title: '辞書から作った表', rows: rows };
+  }
+  function localFlow(hits) {
+    var H = (hits || []).slice(0, 10), lines = [], seen = {};
+    function find(r) { r = String(r); for (var i = 0; i < H.length; i++) { var d = H[i]; if (d.id === r || d.id === 'pk:' + r || d.id === 'kd:' + r || d.rid === r || String(d.title).toLowerCase() === r.toLowerCase()) return d; } return null; }
+    H.forEach(function (d) { (d.link || []).forEach(function (r) { var t = find(r); if (t && t !== d) { var l = shortTitle(d.title) + ' -> ' + shortTitle(t.title); if (!seen[l]) { seen[l] = 1; lines.push(l); } } }); });
+    var linked = lines.length > 0;
+    if (!linked) for (var i = 0; i + 1 < H.length; i++) lines.push(shortTitle(H[i].title) + ' -> ' + shortTitle(H[i + 1].title));
+    return { op: 'flow', title: linked ? '辞書のつながり' : '辞書の項目（関連順）', text: lines.join('\n'), linked: linked };
+  }
+  function localSnippets(hits) {
+    var out = [];
+    (hits || []).slice(0, 4).forEach(function (d) {
+      var form = secOf(d.full, '形'), ex = secOf(d.full, '例');
+      if (form || ex) out.push({ title: d.title, form: form, example: ex, mistakes: secOf(d.full, 'よくある間違い') });
     });
     return out;
   }
@@ -499,7 +530,7 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
   }
 
   var api = { fromKD: fromKD, fromQR: fromQR, fetchBox: fetchBox, loadFeed: loadFeed, retrieve: retrieve, material: material, buildPrompt: buildPrompt,
-    callAI: callAI, ask: ask, fullText: fullText, fromPack: fromPack, plan: plan, planActs: planActs, mine: mine, exportRaw: exportRaw, srcLabel: srcLabel, VERB: VERB, parseReply: parseReply, extractCode: extractCode, lintCode: lintCode, rulesText: rulesText, redact: redact, redactTitle: redactTitle, isSecret: isSecret, config: config, plain: plain, EXCLUDE_TAGS: EXCLUDE_TAGS };
+    callAI: callAI, ask: ask, fullText: fullText, fromPack: fromPack, localTable: localTable, localFlow: localFlow, localSnippets: localSnippets, plan: plan, planActs: planActs, mine: mine, exportRaw: exportRaw, srcLabel: srcLabel, VERB: VERB, parseReply: parseReply, extractCode: extractCode, lintCode: lintCode, rulesText: rulesText, redact: redact, redactTitle: redactTitle, isSecret: isSecret, config: config, plain: plain, EXCLUDE_TAGS: EXCLUDE_TAGS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.AICore = api;
 })(typeof window !== 'undefined' ? window : globalThis);
 
@@ -597,13 +628,13 @@ async function doAsk(general){
   const b=$('askBtn');b.disabled=true;let sec=0;b.textContent='考え中…';const tmr=setInterval(()=>{b.textContent='考え中… '+(++sec)+'秒'},1000);
   try{
     const fmt=$('fmt').value,code=(fmt==='code'||$('codeMode').checked)&&!general;
-    const hint=fmt==='table'&&!general?'\n（出力：結果を表にして、actions に op:"table" で入れてください。1行目は列見出し）':fmt==='text'&&!general?'\n（出力：表やコードにせず、文章だけで答えてください）':'';
+    const hint=fmt==='table'&&!general?'\n（出力：結果を表にして、actions に op:"table" で入れてください。1行目は列見出し）':fmt==='flow'&&!general?'\n（出力：結果を流れ図にして、actions に op:"flow" で入れてください。1行に「A -> B」）':fmt==='text'&&!general?'\n（出力：表やコードにせず、文章だけで答えてください）':'';
     const r=await A.ask(allDocs(),qx(q)+hint,{general:!!general,boost:boost(),code,rules:RULES});
     if(!r.none)addUse();
     LAST=Object.assign({q},r);
     if(r.none){GAP=GAP.filter(g=>g.q!==q);GAP.push({id:uid(),q,at:Date.now()});saveMem()}
   }catch(e){LAST={error:(e&&e.message)||String(e)}}
-  clearInterval(tmr);b.disabled=false;b.textContent='🤖 AIに聞く';paintUsage();renderAns();paintGrow()}
+  clearInterval(tmr);b.disabled=false;b.textContent='🤖 AIにも聞く（トークンを使う）';paintUsage();renderAns();paintGrow()}
 function vote(v){
   if(!LAST||LAST.fb||!LAST.hits)return;
   const ids=LAST.hits.map(d=>d.id);if(!ids.length&&!LAST.isCode)return;
@@ -699,6 +730,33 @@ $('nav').addEventListener('click',e=>{const b=e.target.closest('button[data-t]')
   if(b.dataset.t==='plan')paintPlan();
   if(b.dataset.t==='set')paintCfg();if(b.dataset.t==='know')paintKnow();if(b.dataset.t==='grow')paintGrow();window.scrollTo(0,0)});
 $('askBtn').addEventListener('click',()=>doAsk(false));
+// ---- 辞書だけで作る（AIなし）
+let LH=[],LACT=null;
+function curHits(){
+  const q=$('q').value.trim(),all=allDocs();if(!q||!all.length)return[];
+  let L=A.retrieve(all,qx(q),8,boost());const n=A.redactTitle(q).toLowerCase();
+  if(L.length<8)all.forEach(d=>{if(L.length<8&&!L.includes(d)&&d.title.toLowerCase().indexOf(n)>=0)L.push(d)});return L}
+function localMake(){
+  const q=$('q').value.trim(),o=$('lout');LACT=null;
+  if(!q){toast('話すか、入力してください');return}
+  if(!allDocs().length){o.innerHTML='<div class="card err">辞書がまだ読み込めていません。📚 で読み込み直してください。</div>';return}
+  LH=curHits();
+  if(!LH.length){o.innerHTML='<div class="card warn"><b>辞書には、この話の材料がありません。</b><div class="dim">AIは呼んでいません。「🤖 AIにも聞く」を押すと、一般知識で答えます。</div></div>';return}
+  let k=$('fmt').value;
+  if(k==='auto')k=/表|一覧|比較|まとめ/.test(q)?'table':/流れ|フロー|手順|つながり/.test(q)?'flow':/コード|書き方|形|例|サンプル/.test(q)?'code':'text';
+  let h='<div class="card"><h2>⚡ 辞書だけで作りました（AIなし・トークン0）</h2>';
+  if(k==='table'){LACT=A.localTable(LH);h+='<div class="dim">表（'+(LACT.rows.length-1)+'行）</div><pre class="code">'+esc(LACT.rows.map(r=>r.join(' | ')).join('\n'))+'</pre>'}
+  else if(k==='flow'){LACT=A.localFlow(LH);h+='<div class="dim">'+esc(LACT.title)+'</div><pre class="code">'+esc(LACT.text)+'</pre>'}
+  else if(k==='code'){const S=A.localSnippets(LH);h+=S.length?S.map((x,i)=>'<div class="dim" style="margin-top:8px"><b>'+esc(x.title)+'</b></div>'+(x.form?'<div class="dim">形</div><pre class="code">'+esc(x.form)+'</pre>':'')+(x.example?'<div class="dim">例</div><pre class="code">'+esc(x.example)+'</pre>':'')+(x.mistakes?'<div class="dim">よくある間違い</div><div class="ans">'+esc(x.mistakes)+'</div>':'')+'<div class="row"><button class="sm" data-lcopy="'+i+'">例をコピー</button></div>').join(''):'<div class="dim">形・例を持つ項目が見つかりませんでした（下の候補を開いてください）</div>';LACT={op:'snip',s:S}}
+  else{h+=LH.slice(0,3).map(d=>'<div class="src"><b>'+esc(A.redactTitle(d.title))+'</b> <span class="tag '+d.src+'">'+A.srcLabel(d.src)+'</span><pre class="code">'+esc(A.fullText(d).slice(0,1200))+'</pre></div>').join('')}
+  if(LACT&&(LACT.op==='table'||LACT.op==='flow'))h+='<div class="row"><button class="pri sm" id="lOpen">table-pad で開く</button><button class="sm" id="lCopy">コピー</button></div>';
+  h+='<div class="dim" style="margin-top:6px">根拠：下の「辞書・メモから」の候補です。足りなければ「🤖 AIにも聞く」を押してください。</div></div>';
+  o.innerHTML=h}
+$('localBtn').addEventListener('click',localMake);
+$('lout').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.id==='lOpen'&&LACT)return sendAct(LACT);
+  if(b.id==='lCopy'&&LACT)return copyText(actText(LACT)+'');
+  if(b.dataset.lcopy!==undefined&&LACT&&LACT.s){const x=LACT.s[+b.dataset.lcopy];if(x)copyText(x.example||x.form||'')}});
 // ---- 整理タブ：辞書の理解度から「次にやること」を出す
 let PLAN=null,PACTS=null;
 function paintPlan(){
@@ -706,7 +764,7 @@ function paintPlan(){
   if(!k.n){$('pstat').innerHTML='';$('pnote').textContent='辞書の項目がまだ読み込めていません。📚 で読み込み直してください。';$('pqueue').innerHTML='';$('pshelf').innerHTML='';return}
   $('pstat').innerHTML='<div><b>'+k.n+'</b>辞書</div><div><b>'+k.unknown+'</b>未理解</div><div><b>'+k.learning+'</b>理解中</div><div><b>'+k.known+'</b>理解済</div>';
   $('pnote').textContent=(k.noUnd?'古い保存のままで理解度が入っていません。📚 の「読み込み直す」を押してください。 ':'')+(k.empty?'中身（一言・メモ）が空の項目が '+k.empty+' 件あります。空のままでは「理解中」にしても続きません。まず中身を作るのが先です。':'');
-  $('pqueue').innerHTML=PLAN.queue.length?PLAN.queue.map((q,i)=>'<div class="act"><b>'+(i+1)+'. '+esc(A.redactTitle(q.title))+'</b> <span class="tag">'+esc(q.tag)+'</span><div class="dim">'+esc(q.und==='learning'?'理解中':'未理解')+'・参照 '+q.refs+'・'+(q.empty?'中身が空':'中身あり')+'</div><div class="ans">→ '+esc(q.action)+'</div><div class="row">'+(q.empty||q.und!=='known'?'<button class="pri sm" data-explain="'+i+'">🤖 説明させる（聞くへ）</button>':'')+'</div></div>').join(''):'<div class="dim">未理解・理解中の項目はありません。復習だけです。</div>';
+  $('pqueue').innerHTML=PLAN.queue.length?PLAN.queue.map((q,i)=>'<div class="act"><b>'+(i+1)+'. '+esc(A.redactTitle(q.title))+'</b> <span class="tag">'+esc(q.tag)+'</span><div class="dim">'+esc(q.und==='learning'?'理解中':'未理解')+'・参照 '+q.refs+'・'+(q.empty?'中身が空':'中身あり')+'</div><div class="ans">→ '+esc(q.action)+'</div><div class="row">'+(q.empty||q.und!=='known'?'<button class="pri sm" data-explain="'+i+'">📖 辞書から見る（AIなし）</button>':'')+'</div></div>').join(''):'<div class="dim">未理解・理解中の項目はありません。復習だけです。</div>';
   $('pshelf').innerHTML=PLAN.shelves.map(o=>'<div class="src"><b>#'+esc(o.tag)+'</b> <span class="dim">'+o.n+'件・未理解 '+o.unknown+'・理解中 '+o.learning+'・理解済 '+o.known+'</span><div class="ans">→ '+esc(o.next)+'</div></div>').join('')||'<div class="dim">なし</div>'}
 $('s-plan').addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b||!PLAN)return;
@@ -715,11 +773,11 @@ $('s-plan').addEventListener('click',e=>{
   if(b.id==='pAll')return sendAct(PACTS.all);
   if(b.dataset.explain!==undefined){
     const q=PLAN.queue[+b.dataset.explain];if(!q)return;
-    $('q').value='「'+q.title+'」を、私の辞書とメモを根拠に、やさしく3行で説明して。材料にないことは「材料にありません」と書いて。';
+    $('q').value=q.title;
     $('fmt').value='text';$('codeMode').checked=false;
     document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x.dataset.t==='ask'));
     ['ask','know','plan','grow','set'].forEach(t=>{$('s-'+t).hidden=t!=='ask'});
-    paintHits();window.scrollTo(0,0);toast('質問を入れました。🤖 を押すと説明が出ます。✓採用で辞書に残せます')}});
+    paintHits();localMake();window.scrollTo(0,0);toast('辞書から出しました（AIなし）')}});
 // ---- 声で入力（対応していない環境では、キーボードのマイクを案内する）
 let REC=null,RECON=false;
 function micMsg(t){$('micMsg').textContent=t||''}
@@ -732,7 +790,7 @@ function startVoice(){
   REC.onstart=()=>{RECON=true;$('micBtn').textContent='⏹ 聞いています（押すと止まる）';micMsg('話してください…')};
   REC.onresult=ev=>{let t='';for(let i=0;i<ev.results.length;i++)t+=ev.results[i][0].transcript;got=t;$('q').value=t;paintHits()};
   REC.onerror=ev=>{const e=ev&&ev.error;micMsg(e==='not-allowed'||e==='service-not-allowed'?'マイクが許可されていません。設定でマイクを許可するか、キーボードのマイクを使ってください。':e==='no-speech'?'声が聞こえませんでした。もう一度どうぞ。':'声の入力でエラーになりました（'+e+'）。キーボードのマイクも使えます。')};
-  REC.onend=()=>{RECON=false;$('micBtn').textContent='🎤 声で入力';if(got){micMsg('聞き取り：'+got.slice(0,60)+'　直してから押せます');if($('voiceAuto').checked)doAsk()}};
+  REC.onend=()=>{RECON=false;$('micBtn').textContent='🎤 声で入力';if(got){micMsg('聞き取り：'+got.slice(0,60)+'　直してから押せます');if($('voiceAuto').checked)localMake()}};
   try{REC.start()}catch(e){micMsg('声の入力を始められませんでした：'+((e&&e.message)||e))}}
 $('micBtn').addEventListener('click',startVoice);
 let ht=null;$('q').addEventListener('input',()=>{clearTimeout(ht);ht=setTimeout(paintHits,120)});
