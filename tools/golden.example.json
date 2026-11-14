@@ -1,0 +1,5 @@
+[
+  { "q": "クリックしたときに処理を動かすにはどうする", "expect": ["addEventListener"] },
+  { "q": "画面の要素を1つ取り出したい", "expect": ["querySelector"] },
+  { "q": "閉じても残る保存の仕組み", "expect": ["localStorage"] }
+]

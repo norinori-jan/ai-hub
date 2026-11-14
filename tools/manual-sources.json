@@ -1,0 +1,19 @@
+{"note":"取説辞書の出典。会社ごとに公式ページを並べる。項目idは dict_man の id。","sources":[
+{"company":"ahamo","url":"https://ahamo.com/plan/","entries":["man-a-001","man-a-002","man-a-005","man-a-007"]},
+{"company":"ahamo","url":"https://ahamo.com/flow/","entries":["man-a-003"]},
+{"company":"ahamo","url":"https://ahamo.com/support/mnp/","entries":["man-a-004"]},
+{"company":"ahamo","url":"https://ahamo.com/news/","entries":["man-a-001","man-a-007"]},
+{"company":"docomo","url":"https://www.docomo.ne.jp/charge/plan_renewal2026/","entries":["man-a-001","man-a-002"]},
+{"company":"Anthropic","url":"https://claude.com/pricing","entries":["man-c-001"]},
+{"company":"Anthropic","url":"https://platform.claude.com/docs/en/about-claude/models/overview","entries":["man-c-003"]},
+{"company":"Anthropic","url":"https://code.claude.com/docs/en/changelog","entries":["man-c-004"]},
+{"company":"Anthropic","url":"https://www.anthropic.com/news","entries":["man-c-003","man-c-007"]},
+{"company":"OpenAI","url":"https://developers.openai.com/api/docs/pricing","entries":["man-o-003"]},
+{"company":"OpenAI","url":"https://openai.com/chatgpt/pricing/","entries":["man-o-001"]},
+{"company":"Google","url":"https://gemini.google/jp/subscriptions/","entries":["man-g-001"]},
+{"company":"Microsoft","url":"https://www.microsoft.com/ja-jp/microsoft-365/p/microsoft-365-personal/cfq7ttc0k5dm","entries":["man-m-001"]},
+{"company":"Microsoft","url":"https://learn.microsoft.com/en-us/windows/release-health/windows11-release-information","entries":["man-m-003"]},
+{"company":"LINEヤフー","url":"https://www.lycorp.co.jp/ja/news/release/","entries":["man-y-001","man-y-003"]},
+{"company":"PayPay","url":"https://www.paypay.ne.jp/help/","entries":["man-y-002"]},
+{"company":"AWS","url":"https://aws.amazon.com/free/","entries":["man-z-006"]}
+]}

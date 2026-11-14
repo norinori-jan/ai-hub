@@ -1,6 +1,6 @@
 {
-  "name": "ai-hub",
-  "short_name": "ai-hub",
+  "name": "しらべる（辞書・メモ）",
+  "short_name": "しらべる",
   "description": "Personal OS Hub",
   "start_url": "./",
   "display": "standalone",

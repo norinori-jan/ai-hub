@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>統合AI</title>
+<title>しらべる</title>
 <style>
 :root{--bg:#0f1117;--card:#181b24;--line:#2a2f3d;--tx:#e8eaf0;--dim:#8b92a5;--ac:#4c9aff;--ok:#34c38f;--ng:#f1556c;--gold:#f5b83d;--r:12px}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -31,6 +31,7 @@ button.sm{min-height:34px;padding:5px 10px;font-size:13px}
 button:disabled{opacity:.45}
 #banner .card{margin:0 0 8px}
 .hit b{font-size:15px}
+.ans-card{border-color:var(--acc,#4ea1ff)}.ans-card h2{margin:4px 0 8px;font-size:17px}.ans-card .ans{font-size:15px;line-height:1.6}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
 .dim{color:var(--dim);font-size:12px;line-height:1.6}
 .ans{white-space:pre-wrap;word-break:break-word}
@@ -61,20 +62,26 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
 </style>
 </head>
 <body>
-<header><h1>🧠 統合AI</h1><span class="badge" id="hb">読み込み前</span></header>
+<header><h1>🔎 しらべる</h1><span class="badge" id="hb">読み込み前</span></header>
 <div id="banner"></div>
 
 <section id="s-ask">
   <div class="card">
-    <textarea id="q" rows="3" placeholder="辞書とメモを根拠に聞く　例）CORSとは？　通信まわりの用語を表にして"></textarea>
-    <div class="row"><button class="sm" id="micBtn" type="button">🎤 声で入力</button><select id="fmt" aria-label="出力の形"><option value="auto">出力：おまかせ</option><option value="table">出力：表にする</option><option value="flow">出力：流れ図にする</option><option value="code">出力：コード</option><option value="text">出力：文章だけ</option></select></div>
+    <textarea id="q" rows="2" placeholder="調べたいことを入れてください　例）CORSとは？"></textarea>
+    <div class="row"><button class="sm" id="micBtn" type="button">🎤 声で入力</button><span class="dim">入れると、辞書とメモから答えを探します（AIは使いません）</span></div>
+    <div class="dim" id="micMsg"></div>
+  </div>
+  <div id="lout"></div>
+  <div id="out"></div>
+  <div id="hits"></div>
+  <details class="card" id="moreBox"><summary><b>もっと：表・流れ・コードにする／AIに聞く／声の設定</b></summary>
+    <div class="row"><select id="fmt" aria-label="出力の形"><option value="auto">出力：おまかせ</option><option value="table">出力：表にする</option><option value="flow">出力：流れ図にする</option><option value="code">出力：コード</option><option value="text">出力：文章だけ</option></select></div>
     <label class="chk"><input type="checkbox" id="codeMode"> 💻 コードを書いてもらう（ルール帳を守らせる）</label>
     <label class="chk"><input type="checkbox" id="voiceAuto"> 話し終えたら、そのまま辞書から作る（AIなし）</label>
     <div class="row"><button class="pri" id="localBtn">⚡ 辞書だけで作る（AIなし・無料）</button></div>
     <div class="row"><button class="sm" id="askBtn">🤖 AIにも聞く（トークンを使う）</button><span class="dim" id="usage"></span></div>
-    <div class="dim" id="micMsg"></div>
-    <div class="dim" style="margin-top:6px">入力すると、辞書・メモから即座に探して下に出します（AIは使いません）。プロンプトやコマンドは、「全文を見る」でそのまま出ます。</div>
-  </div>
+    <div class="dim" style="margin-top:6px">プロンプトやコマンドは、答えの「全文を見る」でそのまま出ます。</div>
+  </details>
   <details class="card" id="pasteBox"><summary><b>📋 普段のAIに聞いて、返事を貼る（API・トークン不要）</b></summary>
     <div class="dim" style="margin:6px 0">① 質問を作ってコピー → ② claude.ai などの普段のAIに貼って送る → ③ 返事をコピーして、下に貼って取り込む。表・流れ・コードは、そのまま table-pad やコピーに使えます。</div>
     <div class="row"><button class="pri sm" id="pasteMake">① コピペ用の質問を作ってコピー</button></div>
@@ -82,9 +89,6 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
     <textarea id="pasteIn" rows="5" placeholder="② の返事をここに貼る"></textarea>
     <div class="row"><button class="pri sm" id="pasteTake">③ 返事を取り込む</button><button class="sm" id="pasteClr">クリア</button></div>
   </details>
-  <div id="lout"></div>
-  <div id="out"></div>
-  <div id="hits"></div>
 </section>
 
 <section id="s-know" hidden>
@@ -119,6 +123,14 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
     <div id="rlist"></div>
     <div class="row"><select id="rType" style="width:96px"><option value="ng">ダメ</option><option value="ok">よい</option></select><input id="rText" placeholder="例）class を使う書き方はダメ" style="flex:1;min-width:140px"><button class="sm pri" id="rAdd">足す</button></div></div>
   <div class="card"><h2>育てた答え</h2><div id="mlist"></div></div>
+  <div class="card"><h2>🔎 まとめ忘れ探し</h2>
+    <div class="dim">メモ・辞書アプリの題とタグで、いまの辞書パックを引き、引けない話題を探します。AIは使いません。保護メモは対象外です。</div>
+    <div class="row"><button class="pri sm" id="gapScanBtn">探す</button><button class="sm" id="gapTopicBtn">話題の一覧をコピー</button></div>
+    <div class="dim" id="gapSum"></div><div id="gapTags" class="row"></div><div id="gapList"></div>
+    <details id="gapAddBox"><summary>辞書に足す（普通のAIの返事を貼る）</summary>
+      <div class="dim" style="margin:6px 0">各メモの「頼む文をコピー」を普通のAIに貼り、返ってきたJSONを、ここへ貼ります。今の辞書パックに足されます（置き換えません）。</div>
+      <textarea id="gapPaste" rows="5" placeholder="返事のJSONを貼る" style="width:100%"></textarea>
+      <div class="row"><button class="pri sm" id="gapAddBtn">足す</button></div><div class="dim" id="gapMsg"></div></details></div>
   <div class="card"><h2>材料が無かった質問（辞書に足す候補）</h2><div id="glist"></div></div>
   <div class="card"><h2>持ち出し・同期</h2>
     <div class="row"><button id="syncBtn" class="sm">☁ 端末どうしで同期</button><button id="expBtn" class="sm">⬇ 学習データ(JSONL)</button></div>
@@ -444,21 +456,42 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
   }
 
   // ---------- 根拠の検索（見出し語・タグ・本文の重みつき） ----------
-  function retrieve(docs, query, k, boost) {
+  // 珍しい2文字ほど重く数える（どの項目にも出る「プロンプト」「ブラウザー」などより、決め手になる語を優先）
+  var DFC = { key: '', df: null };
+  function docFreq(docs) {
+    var sum = 0, last = docs.length ? docs[docs.length - 1].id : '';
+    docs.forEach(function (d) { sum += (d.updatedAt || 0) % 1000003; });
+    var key = docs.length + ':' + last + ':' + sum;
+    if (DFC.key === key) return DFC.df;
+    var df = {};
+    docs.forEach(function (d) {
+      var u = new Set();
+      [d.title, d.tags.join(' '), d.text].forEach(function (f) { if (f) bigrams(f).forEach(function (g) { u.add(g); }); });
+      u.forEach(function (g) { df[g] = (df[g] || 0) + 1; });
+    });
+    DFC.key = key; DFC.df = df;
+    return df;
+  }
+  function scoreAll(docs, query, boost) {
     boost = boost || {};
-    var qn = norm(query), qb = bigrams(query);
-    var scored = docs.map(function (d) {
+    var qn = norm(query), qb = bigrams(query), df = docFreq(docs), N = docs.length || 1;
+    function w(g) { return Math.log(1 + N / (df[g] || 1)); }
+    var qs = 0; qb.forEach(function (g) { qs += w(g); });
+    return docs.map(function (d) {
       var s = 0, tn = norm(d.title);
       if (tn.length >= 2 && qn.indexOf(tn) >= 0) s += 20;
       d.tags.forEach(function (t) { var n = norm(t); if (n.length >= 2 && qn.indexOf(n) >= 0) s += 8; });
-      if (qb.size) {
+      if (qb.size && qs > 0) {
         [[d.title, 6], [d.tags.join(' '), 4], [d.text, 1.5]].forEach(function (p) {
-          if (!p[0]) return; var b = bigrams(p[0]), h = 0; qb.forEach(function (g) { if (b.has(g)) h++; }); s += p[1] * (h / qb.size) * 10;
+          if (!p[0]) return; var b = bigrams(p[0]), h = 0; qb.forEach(function (g) { if (b.has(g)) h += w(g); }); s += p[1] * (h / qs) * 10;
         });
       }
       if (s > 0 && boost[d.id]) s *= Math.max(0.2, 1 + 0.2 * Math.max(-3, Math.min(3, boost[d.id])));   // 👍は上へ、👎は下へ（育てる）
       return { d: d, s: s };
     }).filter(function (x) { return x.s >= 3; }).sort(function (a, b) { return b.s - a.s; });
+  }
+  function retrieve(docs, query, k, boost) {
+    var scored = scoreAll(docs, query, boost);
     var out = scored.slice(0, k || 6).map(function (x) { return x.d; });
     // 見出し語どうしのつながり（related）を少し足す
     var have = {}; out.forEach(function (d) { have[d.id] = 1; });
@@ -470,6 +503,33 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
       });
     });
     return out;
+  }
+  // ---------- 質問に当たる一文を選ぶ（AIなし） ----------
+  function bestSnippet(d, query, maxLen) {
+    maxLen = maxLen || 280;
+    var text = redact(String(d.full || d.text || '')).text;
+    var units = [];
+    text.split(/\n+/).forEach(function (line) {
+      var l = line.trim(); if (!l || l === HIDDEN) return;
+      if (/^【[^】]*】$/.test(l)) return;                       // 見出しだけの行は材料にしない
+      l.replace(/([。！？])/g, '$1\u0001').split('\u0001').forEach(function (u) { u = u.trim(); if (u.length >= 4) units.push(u); });
+    });
+    if (!units.length) return '';
+    var qb = bigrams(query);
+    var scored = units.map(function (u, i) { var b = bigrams(u), h = 0; qb.forEach(function (g) { if (b.has(g)) h++; }); return { u: u, i: i, h: h }; });
+    var picked = scored.filter(function (x) { return x.h > 0; }).sort(function (a, b) { return b.h - a.h || a.i - b.i; }).slice(0, 2).sort(function (a, b) { return a.i - b.i; });
+    if (!picked.length) picked = scored.slice(0, 2);
+    var out = picked.map(function (x) { return x.u; }).join('\n');
+    return out.length > maxLen ? out.slice(0, maxLen) + '…' : out;
+  }
+  // state: 'sure'（見出し語が質問に入っている等、はっきりしている）／'maybe'（近いが確信は高くない）／'none'（材料なし）
+  function quickAnswer(docs, query, boost) {
+    var sc = scoreAll(docs, query, boost);
+    if (!sc.length) return { state: 'none', top: null, snippet: '', more: [] };
+    var top = sc[0], second = sc[1], tn = norm(top.d.title);
+    var titleHit = tn.length >= 2 && norm(query).indexOf(tn) >= 0;
+    var sure = titleHit || (top.s >= 12 && (!second || top.s >= 1.5 * second.s));
+    return { state: sure ? 'sure' : 'maybe', top: top.d, score: top.s, snippet: bestSnippet(top.d, query), more: sc.slice(1, 7).map(function (x) { return x.d; }) };
   }
   function fullText(d) { return d.full || d.text || ''; }
   function material(d, budget, whole) {
@@ -575,7 +635,67 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
     return { answer: p.answer, actions: p.actions, hits: hits, removed: r.removed, model: r.model, none: false, general: !!opts.general };
   }
 
-  var api = { fromKD: fromKD, fromQR: fromQR, fetchBox: fetchBox, loadFeed: loadFeed, retrieve: retrieve, material: material, buildPrompt: buildPrompt,
+  // ---------- まとめ忘れ探し（メモにあるのに、辞書にまだ無い話題を見つける。AIなし） ----------
+  // memos: メモの文書（fromQR など）／ pk: 辞書パックの文書（fromPack）。保護メモは、入口の fromQR で外れている。
+  function gapScan(memos, pk, weakBelow) {
+    var wb = weakBelow || 6, rows = [], tagAll = {}, tagGap = {};
+    (memos || []).forEach(function (d) {
+      var a = quickAnswer(pk || [], String(d.title || '').length >= 2 ? d.title : (d.title + ' ' + (d.tags || []).join(' ')), {}); // 題だけで引く（タグを混ぜると、同じタグの別項目で「引けた」と誤る）
+      var st = a.state === 'none' ? 'none' : (a.state === 'sure' ? 'sure' : ((a.score || 0) < wb ? 'weak' : 'maybe'));
+      rows.push({ doc: d, state: st, top: a.top ? a.top.title : '' });
+      (d.tags || []).forEach(function (t) { tagAll[t] = (tagAll[t] || 0) + 1; if (st === 'none' || st === 'weak') tagGap[t] = (tagGap[t] || 0) + 1; });
+    });
+    var cnt = function (s) { return rows.filter(function (r) { return r.state === s; }).length; };
+    var tags = Object.keys(tagAll).map(function (t) { return { tag: t, memos: tagAll[t], gaps: tagGap[t] || 0 }; })
+      .sort(function (a, b) { return b.gaps - a.gaps || b.memos - a.memos; });
+    return { total: rows.length, sure: cnt('sure'), maybe: cnt('maybe'), weak: cnt('weak'), none: cnt('none'), rows: rows, tags: tags };
+  }
+  function shortHash(s) { var h = 5381; s = String(s); for (var i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0; return h.toString(16); }
+  // 穴のメモ1件から、「辞書の項目を1つ作って」と頼む文を作る（普通のAIに貼る用）。秘密らしい行は伏せる。
+  function gapPrompt(d, now) {
+    var id = 'qr-' + shortHash(d.id), body = redact(fullText(d)).text.slice(0, 1400);
+    return '次の「私のメモ」だけを根拠に、辞書の項目を1つ作ってください。\n' +
+      '- メモに書いていないことは足さない。足りない点は「要確認」と書く。\n- 説明は、やさしい日本語で、3〜5文。使い方の例があれば example に。\n' +
+      '- 出力は、次の形のJSONだけ（説明文やコードブロックの記号は不要）。id と updatedAt は、そのまま。\n' +
+      '{"id":"' + id + '","lang":"qr","kind":"term","term":"見出し語","summary":"説明","example":"","mistakes":[],"related":[],"tags":[],"updatedAt":' + (now || Date.now()) + '}\n\n' +
+      '【メモの題】' + redactTitle(d.title) + '\n【タグ】' + (d.tags || []).join(' ') + '\n【メモ】\n' + body;
+  }
+  // 返ってきたJSONを、辞書パックの項目として検める。秘密らしい行を含む項目・形の違う項目は、入れない（中身は報告しない）。
+  function parseEntries(text, now) {
+    var t = String(text || '').trim().replace(/^```[A-Za-z]*\s*/, '').replace(/```\s*$/, '').trim(), j, out = [], rejected = [];
+    try { j = JSON.parse(t); } catch (e) { return { entries: [], rejected: ['JSONとして読めませんでした'] }; }
+    var arr = Array.isArray(j) ? j : (j && Array.isArray(j.entries) ? j.entries : (j && typeof j === 'object' ? [j] : []));
+    arr.forEach(function (e, i) {
+      if (!e || typeof e !== 'object') { rejected.push((i + 1) + '件目: 形が違います'); return; }
+      var term = String(e.term || '').trim(), sum = String(e.summary || '').trim();
+      if (!term || term.length > 80) { rejected.push((i + 1) + '件目: 見出し語がありません（または長すぎます）'); return; }
+      if (sum.length < 10 || sum.length > 1500) { rejected.push((i + 1) + '件目: 説明が短すぎる／長すぎます'); return; }
+      var strs = function (v) { return (Array.isArray(v) ? v : []).map(String).filter(Boolean).slice(0, 12); };
+      var n = { id: String(e.id || 'qr-' + shortHash(term)).slice(0, 80), lang: String(e.lang || 'qr').slice(0, 16), kind: String(e.kind || 'term').slice(0, 16), term: term, summary: sum, updatedAt: now || Date.now() };
+      if (e.form) n.form = String(e.form).slice(0, 400);
+      if (e.example) n.example = String(e.example).slice(0, 800);
+      ['mistakes', 'related', 'tags'].forEach(function (k) { var a = strs(e[k]); if (a.length) n[k] = a; });
+      var all = [n.term, n.summary, n.form || '', n.example || ''].concat(n.mistakes || [], n.related || [], n.tags || []).join('\n');
+      if (all.split('\n').some(isSecret)) { rejected.push((i + 1) + '件目: 秘密らしい行を含むため入れません'); return; }
+      out.push(n);
+    });
+    return { entries: out, rejected: rejected };
+  }
+  // 今の辞書パックに足す（同じidは、新しい方）。元のパックは変えず、新しいパックを返す。
+  function mergeEntries(pack, entries) {
+    var base = pack && Array.isArray(pack.entries) ? pack.entries : [], map = {}, added = 0, replaced = 0, order = [];
+    base.forEach(function (e) { map[e.id] = e; order.push(e.id); });
+    (entries || []).forEach(function (e) {
+      var o = map[e.id];
+      if (!o) { map[e.id] = e; order.push(e.id); added++; }
+      else if ((e.updatedAt || 0) >= (o.updatedAt || 0)) { map[e.id] = e; replaced++; }
+    });
+    var np = {}; for (var k in (pack || {})) np[k] = pack[k];
+    np.app = 'dict-pack'; np.version = 1; np.builtAt = Date.now(); np.entries = order.map(function (id) { return map[id]; });
+    return { pack: np, added: added, replaced: replaced };
+  }
+
+  var api = { gapScan: gapScan, gapPrompt: gapPrompt, parseEntries: parseEntries, mergeEntries: mergeEntries, fromKD: fromKD, fromQR: fromQR, fetchBox: fetchBox, loadFeed: loadFeed, retrieve: retrieve, quickAnswer: quickAnswer, bestSnippet: bestSnippet, material: material, buildPrompt: buildPrompt,
     callAI: callAI, ask: ask, fullText: fullText, fromPack: fromPack, makePaste: makePaste, parsePasted: parsePasted, localTable: localTable, localFlow: localFlow, localSnippets: localSnippets, plan: plan, planActs: planActs, mine: mine, exportRaw: exportRaw, srcLabel: srcLabel, VERB: VERB, parseReply: parseReply, extractCode: extractCode, lintCode: lintCode, rulesText: rulesText, redact: redact, redactTitle: redactTitle, isSecret: isSecret, config: config, plain: plain, EXCLUDE_TAGS: EXCLUDE_TAGS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.AICore = api;
 })(typeof window !== 'undefined' ? window : globalThis);
@@ -632,13 +752,20 @@ function snip(d){const t=(A.fullText(d)||'').replace(/\s+/g,' ');return t.slice(
 // ---- 声・カタカナの言い方を、辞書の英語の語に結びつける（検索用。画面の質問文は変えない）
 const ALIAS=[[/プロミス/,'Promise async await'],[/オール/,'all'],[/フェッチ/,'fetch'],[/アシンク|非同期/,'async await Promise'],[/パワーシェル|ぱわーしぇる/,'PowerShell'],[/ギット|ジット/,'git'],[/ジェイソン|ジェイソ/,'JSON'],[/ストレージ/,'localStorage IndexedDB'],[/インデックスdb|インデックスディービー|アイディービー/i,'IndexedDB'],[/サービスワーカー/,'Service Worker serviceworker'],[/イベント委譲|デリゲーション/,'event delegation'],[/正規表現|レジェックス/,'regex RegExp'],[/配列|アレイ/,'Array'],[/オブジェクト/,'Object'],[/クラス/,'class'],[/スプレッド/,'spread'],[/コピー/,'copy clipboard'],[/ダウンロード/,'download Blob'],[/タイムアウト/,'timeout AbortController'],[/リトライ/,'retry'],[/フレックス/,'flex flexbox'],[/グリッド/,'grid'],[/ダークモード/,'dark color-scheme'],[/セーフエリア/,'safe-area'],[/スニペット/,'snippet'],[/エスキューエル/,'SQL'],[/ジョイン/,'JOIN'],[/グループバイ/,'GROUP BY'],[/パイソン/,'Python'],[/エラー処理|例外/,'try catch error'],[/アーギュメント|引数/,'args argument'],[/ハッシュテーブル/,'hashtable'],[/環境変数/,'env environment'],[/文字化け|文字コード/,'encoding BOM UTF8'],[/貼り付け|ペースト/,'paste']];
 function qx(q){const ex=[];ALIAS.forEach(a=>{if(a[0].test(q))ex.push(a[1])});return ex.length?q+' '+ex.join(' '):q}
+function hitCard(d){return '<div class="card hit"><b>'+esc(A.redactTitle(d.title))+'</b> <span class="tag '+d.src+'">'+A.srcLabel(d.src)+'</span><span class="tg dim">'+esc(d.tags.slice(0,4).join(' · '))+'</span><div class="dim">'+esc(snip(d))+'</div><div class="row"><button class="sm pri" data-open="'+esc(d.id)+'">全文を見る</button><button class="sm" data-copyfull="'+esc(d.id)+'">全文コピー</button></div><pre class="code" hidden></pre></div>'}
+function answerCard(qa){
+  const d=qa.top,sure=qa.state==='sure';
+  return '<div class="card hit ans-card"><div class="dim">'+(sure?'答え（辞書・メモから）':'いちばん近い項目です（確信は高くありません。下の候補も見てください）')+'</div><h2>'+esc(A.redactTitle(d.title))+' <span class="tag '+d.src+'">'+A.srcLabel(d.src)+'</span></h2><div class="ans">'+esc(qa.snippet||snip(d))+'</div><div class="row"><button class="sm pri" data-open="'+esc(d.id)+'">全文を見る</button><button class="sm" data-copyfull="'+esc(d.id)+'">全文コピー</button><button class="sm" data-askai="1">🤖 AIにも聞く</button></div><pre class="code" hidden></pre></div>'}
 function paintHits(){
   const q=$('q').value.trim(),all=allDocs();
-  let L=[],head='';
   if(!all.length){$('hits').innerHTML='';return}
-  if(!q){L=all.slice().sort((a,b)=>b.updatedAt-a.updatedAt).slice(0,5);head='最近の項目'}
-  else{L=A.retrieve(all,qx(q),8,boost());const n=A.redactTitle(q).toLowerCase();if(L.length<8)all.forEach(d=>{if(L.length<8&&!L.includes(d)&&d.title.toLowerCase().indexOf(n)>=0)L.push(d)});head=L.length?'辞書・メモから '+L.length+'件（即時）':'一致する項目がありません（AIに聞いても材料はありません）'}
-  $('hits').innerHTML='<div class="dim" style="margin:6px 2px">'+esc(head)+'</div>'+L.map(d=>'<div class="card hit"><b>'+esc(A.redactTitle(d.title))+'</b> <span class="tag '+d.src+'">'+A.srcLabel(d.src)+'</span><span class="tg dim">'+esc(d.tags.slice(0,4).join(' · '))+'</span><div class="dim">'+esc(snip(d))+'</div><div class="row"><button class="sm pri" data-open="'+esc(d.id)+'">全文を見る</button><button class="sm" data-copyfull="'+esc(d.id)+'">全文コピー</button></div><pre class="code" hidden></pre></div>').join('')}
+  if(!q){const L=all.slice().sort((a,b)=>b.updatedAt-a.updatedAt).slice(0,5);$('hits').innerHTML='<div class="dim" style="margin:6px 2px">最近の項目（上の欄に、調べたいことを入れてください）</div>'+L.map(hitCard).join('');return}
+  const qa=A.quickAnswer(all,qx(q),boost());
+  if(qa.state==='none'){
+    const n=A.redactTitle(q).toLowerCase(),L=all.filter(d=>d.title.toLowerCase().indexOf(n)>=0).slice(0,8);
+    $('hits').innerHTML=L.length?'<div class="dim" style="margin:6px 2px">題に「'+esc(q)+'」を含む項目 '+L.length+'件</div>'+L.map(hitCard).join(''):'<div class="card"><b>辞書・メモに、合う材料がありません。</b><div class="dim" style="margin-top:6px">AIに聞いても、根拠になる材料はありません。辞書やメモに足すと、次から答えられます。</div></div>';return}
+  const seen={};seen[qa.top.id]=1;const rest=qa.more.filter(d=>!seen[d.id]).slice(0,5);
+  $('hits').innerHTML=answerCard(qa)+(rest.length?'<div class="dim" style="margin:6px 2px">ほかの候補</div>'+rest.map(hitCard).join(''):'')}
 
 // ---- 1日の使用回数
 function usage(){const d=new Date().toISOString().slice(0,10),u=jget('ah_usage',{});return u.d===d?u:{d,n:0}}
@@ -722,6 +849,28 @@ async function pkSave(p){setPack(p);await idbSet('pack',p);paintPack();paintHead
 function mnPaint(){$('mnList').innerHTML=MINED.length?'<div class="dim" style="margin:6px 0">'+MINED.length+'件（多い順・上位80件を表示）</div>'+MINED.slice(0,80).map(m=>'<div class="src"><b>'+esc(m.term)+'</b> <span class="tag">'+esc(m.lang)+'</span><span class="tg">'+m.count+'回 ／ '+m.sources.length+'件のメモ</span>'+(m.example?'<pre class="code" style="max-height:90px">'+esc(m.example)+'</pre>':'')+'</div>').join(''):''}
 // ---- 育てるタブ
 function paintRules(){$('rlist').innerHTML=RULES.length?RULES.slice().sort((a,b)=>(a.type==='ng'?0:1)-(b.type==='ng'?0:1)).map(r=>'<div class="rl"><span class="tag '+(r.type==='ng'?'ng':'okk')+'">'+(r.type==='ng'?'ダメ':'よい')+'</span><span>'+esc(r.text)+'</span><button class="sm" data-rdel="'+r.id+'">消す</button></div>').join(''):'<div class="dim">まだありません。</div>'}
+// ---- まとめ忘れ探し
+let GAPR=null;
+const gapSkip=()=>jget('ah_gapskip',[]);
+function gapMemos(){return FEED.docs.filter(d=>d.src==='qr'||d.src==='kd')}
+function gapScanRun(){
+  if(!PKD.length){$('gapSum').textContent='辞書パックがまだありません。「📚 知識」で読み込んでください。';return}
+  const m=gapMemos();if(!m.length){$('gapSum').textContent='メモが読み込めていません。「📚 知識」で読み込み直してください。';return}
+  GAPR=A.gapScan(m,PKD);paintGap()}
+function paintGap(){
+  if(!GAPR){return}
+  const skip=gapSkip(),r=GAPR,rows=r.rows.filter(x=>(x.state==='none'||x.state==='weak')&&skip.indexOf(x.doc.id)<0);
+  $('gapSum').textContent='メモ・辞書アプリ '+r.total+'件のうち、しっかり引けた '+r.sure+' ／ 近いもの '+r.maybe+' ／ 弱い '+r.weak+' ／ 引けない '+r.none+'。まとめたい候補 '+rows.length+'件';
+  $('gapTags').innerHTML=r.tags.filter(t=>t.gaps>0).slice(0,12).map(t=>'<span class="tag">'+esc(t.tag)+' '+t.gaps+'</span>').join('');
+  $('gapList').innerHTML=rows.slice(0,30).map(x=>'<div class="mem"><div class="q">'+esc(A.redactTitle(x.doc.title))+' <span class="tag '+x.doc.src+'">'+A.srcLabel(x.doc.src)+'</span></div><div class="dim">'+esc(x.doc.tags.slice(0,4).join(' · '))+(x.top?' ／ 近い項目：'+esc(x.top):'')+'</div><div class="row"><button class="sm" data-gapq="'+esc(x.doc.id)+'">調べる</button><button class="sm" data-gapp="'+esc(x.doc.id)+'">頼む文をコピー</button><button class="sm" data-gaps="'+esc(x.doc.id)+'">今は不要</button></div></div>').join('')||'<div class="dim">候補はありません。</div>'}
+function gapDoc(id){return gapMemos().find(d=>d.id===id)}
+async function gapAdd(){
+  const r=A.parseEntries($('gapPaste').value);
+  if(!r.entries.length){$('gapMsg').textContent='足せる項目がありません。'+r.rejected.join(' ／ ');return}
+  const m=A.mergeEntries(PACK||{entries:[]},r.entries);
+  await pkSave(m.pack);$('gapPaste').value='';
+  $('gapMsg').textContent='足しました：新規 '+m.added+'件・更新 '+m.replaced+'件'+(r.rejected.length?'（入れなかった: '+r.rejected.join(' ／ ')+'）':'');
+  if(GAPR)gapScanRun()}
 function paintGrow(){paintRules();
   const up=FB.filter(f=>f.vote>0).length,dn=FB.filter(f=>f.vote<0).length;
   $('gstat').innerHTML='<div><b>'+MEM.length+'</b>採用</div><div><b>'+up+'</b>👍</div><div><b>'+dn+'</b>👎</div><div><b>'+GAP.length+'</b>材料なし</div>';
@@ -880,6 +1029,10 @@ function startVoice(){
   if(WANT){micStop();return}   // 録音中に押すと、止める
   WANT=true;MIC={base:$('q').value,fin:'',sess:'',empty:0,got:false};   // いま入っている文字を残して、続きに足す
   micLoop()}
+$('gapScanBtn').addEventListener('click',gapScanRun);
+$('gapAddBtn').addEventListener('click',gapAdd);
+$('gapTopicBtn').addEventListener('click',()=>{if(!GAPR){gapScanRun()}if(!GAPR)return;const skip=gapSkip();
+  const L=['# 辞書を厚くしたい話題（本文は含みません）',''].concat(GAPR.tags.filter(t=>t.gaps>0).slice(0,40).map(t=>'- '+t.tag+'（穴 '+t.gaps+'件）'));copyText(L.join('\n'))});
 $('micBtn').addEventListener('click',startVoice);
 let ht=null;$('q').addEventListener('input',()=>{clearTimeout(ht);ht=setTimeout(paintHits,120)});
 $('reload').addEventListener('click',loadFeed);
@@ -909,6 +1062,7 @@ $('cTest').addEventListener('click',async()=>{const c=A.config(),o=$('cRes');if(
   o.textContent=lines.join('\n')});
 document.addEventListener('click',e=>{
   const t=e.target.closest('button');if(!t)return;
+  if(t.dataset.askai){$('askBtn').click();return}
   if(t.dataset.open){const d=allDocs().find(x=>x.id===t.dataset.open),p=t.closest('.hit').querySelector('pre');if(d&&p){if(p.hidden){p.textContent=A.fullText(d);p.hidden=false;t.textContent='閉じる'}else{p.hidden=true;t.textContent='全文を見る'}}return}
   if(t.dataset.copyfull){const d=allDocs().find(x=>x.id===t.dataset.copyfull);if(d)copyText(A.fullText(d));return}
   if(t.id==='genBtn'){doAsk(true);return}
@@ -924,6 +1078,9 @@ document.addEventListener('click',e=>{
   if(t.dataset.rdel){const id=t.dataset.rdel;RULES=RULES.filter(r=>r.id!==id);TOMB[id]=Date.now();saveMem();paintRules();return}
   if(t.dataset.ccopy!=null&&LAST&&LAST.code){const c=LAST.code[+t.dataset.ccopy];if(c)copyText(c.code);return}
   if(t.dataset.gdel){GAP=GAP.filter(g=>g.id!==t.dataset.gdel);saveMem();paintGrow();return}
+  if(t.dataset.gapq){const d=gapDoc(t.dataset.gapq);if(d){$('q').value=d.title;document.querySelector('nav button[data-t=ask]').click()}return}
+  if(t.dataset.gapp){const d=gapDoc(t.dataset.gapp);if(d)copyText(A.gapPrompt(d));return}
+  if(t.dataset.gaps){const a=gapSkip();a.push(t.dataset.gaps);lsSet('ah_gapskip',JSON.stringify(a.slice(-500)));paintGap();return}
   if(t.dataset.gask){const g=GAP.find(x=>x.id===t.dataset.gask);if(g){$('q').value=g.q;document.querySelector('nav button[data-t=ask]').click()}return}
 });
 paintUsage();paintHead();paintKnow();paintGrow();
