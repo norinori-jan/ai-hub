@@ -476,12 +476,20 @@
 
   // ---------- まとめ忘れ探し（メモにあるのに、辞書にまだ無い話題を見つける。AIなし） ----------
   // memos: メモの文書（fromQR など）／ pk: 辞書パックの文書（fromPack）。保護メモは、入口の fromQR で外れている。
-  function gapScan(memos, pk, weakBelow) {
-    var wb = weakBelow || 6, rows = [], tagAll = {}, tagGap = {};
+  function gapScan(memos, pk, weakBelow, covMin) {
+    var wb = weakBelow || 6, cm = covMin == null ? 0.5 : covMin, rows = [], tagAll = {}, tagGap = {};
+    // 題の語（数字を除く）が、一番近い辞書項目の題・タグにどれだけ含まれるか。低いなら、似ているだけで、その話題は無い
+    function titleCover(title, top) {
+      var tb = bigrams(String(title || '').replace(/[0-9０-９]+/g, '')), hb = bigrams((top && top.title || '') + ' ' + ((top && top.tags) || []).join(' ')), n = 0, c = 0;
+      tb.forEach(function (g) { n++; if (hb.has(g)) c++; });
+      return n ? c / n : 1;
+    }
     (memos || []).forEach(function (d) {
       var a = quickAnswer(pk || [], String(d.title || '').length >= 2 ? d.title : (d.title + ' ' + (d.tags || []).join(' ')), {}); // 題だけで引く（タグを混ぜると、同じタグの別項目で「引けた」と誤る）
       var st = a.state === 'none' ? 'none' : (a.state === 'sure' ? 'sure' : ((a.score || 0) < wb ? 'weak' : 'maybe'));
-      rows.push({ doc: d, state: st, top: a.top ? a.top.title : '' });
+      var cov = a.top ? titleCover(d.title, a.top) : 0;
+      if (st === 'maybe' && cov < cm) st = 'weak';
+      rows.push({ doc: d, state: st, top: a.top ? a.top.title : '', cover: Math.round(cov * 100) / 100 });
       (d.tags || []).forEach(function (t) { tagAll[t] = (tagAll[t] || 0) + 1; if (st === 'none' || st === 'weak') tagGap[t] = (tagGap[t] || 0) + 1; });
     });
     var cnt = function (s) { return rows.filter(function (r) { return r.state === s; }).length; };

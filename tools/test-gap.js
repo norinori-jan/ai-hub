@@ -65,4 +65,15 @@ t('gapScan: 同じタグの別項目があっても、題の話題が無けれ�
   const r = A.gapScan([memo('x', '八字の大運の数え方', '節入りからの日数', ['占い'])], pk2);
   assert(['none', 'weak'].includes(r.rows[0].state), r.rows[0].state);
 });
+t('gapScan: 題の語が辞書項目の題・タグに含まれないなら、近くても「引けた寄り」にしない', () => {
+  const pk3 = A.fromPack({ entries: [
+    { id: 'k1', lang: 'law', kind: 'term', term: '債務不履行と損害賠償', summary: '約束を守らないときの責任。', tags: ['民法'], updatedAt: 1 },
+    { id: 'k2', lang: 'js', kind: 'term', term: 'IndexedDB', summary: 'ブラウザの中の大きなデータ置き場。', tags: ['js'], updatedAt: 1 }] });
+  const r = A.gapScan([memo('p', '統合版41', '債務不履行と損害賠償の話', ['x']), memo('q', 'IndexedDBの使い方', 'x', ['js'])], pk3);
+  const by = {}; r.rows.forEach((x) => { by[x.doc.title] = x; });
+  assert(['none', 'weak'].includes(by['統合版41'].state), JSON.stringify(by['統合版41'].state));
+  assert(by['統合版41'].cover === 0 || by['統合版41'].top === '', 'cover ' + by['統合版41'].cover);
+  assert(['sure', 'maybe'].includes(by['IndexedDBの使い方'].state), by['IndexedDBの使い方'].state + ' cover ' + by['IndexedDBの使い方'].cover);
+  assert(typeof by['IndexedDBの使い方'].cover === 'number');
+});
 console.log(ng ? 'FAILED ' + ng : 'ALL PASSED (' + ok + ')'); process.exit(ng ? 1 : 0);
