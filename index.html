@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f1117">
-<meta name="ah-rev" content="ah-r8">
+<meta name="ah-rev" content="ah-r9">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -74,6 +74,7 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
   <div id="lout"></div>
   <div id="out"></div>
   <div id="hits"></div>
+  <div id="nemi"></div>
   <details class="card" id="moreBox"><summary><b>もっと：表・流れ・コードにする／AIに聞く／声の設定</b></summary>
     <div class="row"><select id="fmt" aria-label="出力の形"><option value="auto">出力：おまかせ</option><option value="table">出力：表にする</option><option value="flow">出力：流れ図にする</option><option value="code">出力：コード</option><option value="text">出力：文章だけ</option></select></div>
     <label class="chk"><input type="checkbox" id="codeMode"> 💻 コードを書いてもらう（ルール帳を守らせる）</label>
@@ -764,7 +765,7 @@ function hitCard(d){return '<div class="card hit"><b>'+esc(A.redactTitle(d.title
 function answerCard(qa){
   const d=qa.top,sure=qa.state==='sure';
   return '<div class="card hit ans-card"><div class="dim">'+(sure?'答え（辞書・メモから）':'いちばん近い項目です（確信は高くありません。下の候補も見てください）')+'</div><h2>'+esc(A.redactTitle(d.title))+' <span class="tag '+d.src+'">'+A.srcLabel(d.src)+'</span></h2><div class="ans">'+esc(qa.snippet||snip(d))+'</div><div class="row"><button class="sm pri" data-open="'+esc(d.id)+'">全文を見る</button><button class="sm" data-copyfull="'+esc(d.id)+'">全文コピー</button><button class="sm" data-askai="1">🤖 AIにも聞く</button></div><pre class="code" hidden></pre></div>'}
-function paintHits(){
+function paintHits0(){
   const q=$('q').value.trim(),all=allDocs();
   if(!all.length){$('hits').innerHTML='';return}
   if(!q){const L=all.slice().sort((a,b)=>b.updatedAt-a.updatedAt).slice(0,5);$('hits').innerHTML='<div class="dim" style="margin:6px 2px">最近の項目（上の欄に、調べたいことを入れてください）</div>'+L.map(hitCard).join('');return}
@@ -774,6 +775,44 @@ function paintHits(){
     $('hits').innerHTML=L.length?'<div class="dim" style="margin:6px 2px">題に「'+esc(q)+'」を含む項目 '+L.length+'件</div>'+L.map(hitCard).join(''):'<div class="card"><b>辞書・メモに、合う材料がありません。</b><div class="dim" style="margin-top:6px">AIに聞いても、根拠になる材料はありません。辞書やメモに足すと、次から答えられます。</div></div>';return}
   const seen={};seen[qa.top.id]=1;const rest=qa.more.filter(d=>!seen[d.id]).slice(0,5);
   $('hits').innerHTML=answerCard(qa)+(rest.length?'<div class="dim" style="margin:6px 2px">ほかの候補</div>'+rest.map(hitCard).join(''):'')}
+
+// ---- 🧬 内心ログ（ネミ語）：しらべる結果から、AIの内側の考えをネミ語で出す（AIなし・機械的に作る）
+const NM_LEX=('ni:私|to:君|hi:他者|ka:光|mu:静けさ|ru:流れ|re:熱・感情|ku:重さ・重要|su:速さ|ti:時間|nu:数|si:形・構造|so:声|he:記憶|ki:種・はじまり|sa:作る|no:世界|ha:辞書・知っていること|ma:推測|ne:聞いたこと|ta:ない|ke:問い|me:見る|mi:誤り・痛み|ri:つながり|ro:手順・道|hu:忘却|ko:言葉・コード|te:行う|na:名前|se:選ぶ|tu:道具|mo:もの・データ|'+
+'ni-so:独り言|to-so:君の発話|ni-he:自分の記憶|to-he:君の記憶|ri-ni:自己の整合|ri-to:君とのつながり|ri-hi:仲間|hi-so:外からの声|hi-ri:社会|ne-so:ユーザー入力|ke-so:質問|ke-ki:疑問|ku-ke:大事な質問|ha-he:学習済み|ha-ki:新しい項目|ha-ri:関連項目|ha-na:見出し語|ta-ha:知識の穴|ku-ha:重要な知識|no-he:歴史・知識全体|hu-he:忘却|hu-ki:復習|hu-ha:まとめ忘れ|ma-ki:仮説|ma-ro:試行|me-ha:参照した|me-ka:わかった|me-mi:気づき|ka-ki:ひらめき|ka-ro:最適な手順|ku-mu:確信|ka-mu:安らぎ|mu-ru:落ち着き|re-ru:焦り|re-mu:内なる情熱|re-hi:感情的な相手|su-ru:急ぎ|mi-he:間違いの記憶(👎)|mi-ro:バグ|mi-ri:矛盾|ko-mi:エラー|ro-ki:計画のはじまり|ro-te:実行|su-ro:近道|te-mo:成果物|se-ki:決断のはじまり|se-ro:分岐|se-te:採用|sa-ki:着手|sa-te:実装|sa-mo:作品|ko-mo:コード|ko-ro:アルゴリズム|ko-na:関数名|tu-te:ツール実行|tu-ki:新しいツール|tu-mo:部品|ti-ru:時の経過|ti-ki:予定|ti-he:履歴|ti-su:頻度|nu-ku:量|nu-mo:データ値|nu-ri:比率・相関|si-ri:構造|si-mo:図|si-ro:フロー').split('|').reduce((o,x)=>{const i=x.indexOf(':');o[x.slice(0,i)]=x.slice(i+1);return o},{});
+const NM_TENSE={n:'今',ra:'これから',ho:'過去'};
+function nmMean(w){
+  let t='',m='';const p=w.split('-');
+  const last=p[p.length-1];if(p.length>1&&NM_TENSE[last]){t=NM_TENSE[last];p.pop();}
+  let core=p.join('-'),neg=false;
+  if(!NM_LEX[core]&&p[0]==='ta'&&p.length>1){neg=true;core=p.slice(1).join('-')}
+  m=NM_LEX[core]||p.slice(neg?1:0).map(x=>NM_LEX[x]||'?').join('＋');
+  if(w==='ha'||w==='ma'||w==='ne')m=NM_LEX[w];
+  return (neg?'「ない」＋':'')+m+(t?'（'+t+'）':'')}
+function nmLines(){
+  const q=$('q').value.trim(),all=allDocs(),L=[];
+  if(!q)return L;
+  L.push(['to ke-so-ho.','君は質問した']);
+  if(!all.length){L.push(['ni ha ta-me-n.','私は辞書を見ていない（まだ読み込み前）']);return L}
+  const qa=A.quickAnswer(all,qx(q),boost());
+  L.push(['ni ha me-n ha.','私は辞書を見ている（辞書で確認）']);
+  if(qa.state==='sure'){L.push(['ku-mu-n ha.','確信している（辞書の裏づけあり）']);L.push(['ni so-ra ha.','辞書から答えるだろう'])}
+  else if(qa.state==='none'){L.push(['ta-ha-n.','辞書にない＝知識の穴がある']);L.push(['ke-ki hu-ha-ra.','疑問は「まとめ忘れ」として残るだろう'])}
+  else{L.push(['ta-ku-mu-n ha.','確信が弱い']);L.push(['ha-ri me-ra.','関連項目を見るだろう'])}
+  if(LAST&&LAST.q===q){
+    if(LAST.fb<0)L.push(['mi-he-n.','間違いの記憶（👎）になった']);
+    else if(LAST.fb>0)L.push(['ha-ri ku-ra.','つながり（根拠）が重くなるだろう']);
+    if(LAST.adopted)L.push(['se-te-n. ha-ki-ra.','採用した。新しい項目になるだろう'])}
+  return L}
+function paintNemi(){
+  const o=$('nemi');if(!o)return;const L=nmLines();
+  if(!L.length){o.innerHTML='';return}
+  const hide=lsGet('ah_nemi_hide')==='1';
+  o.innerHTML='<div class="card"><h2>🧬 内心ログ（ネミ語）</h2>'+L.map(x=>'<div style="margin:6px 0"><span class="nmL" style="font-family:ui-monospace,Menlo,monospace;font-size:15px">'+x[0].split(' ').map(w=>'<button class="sm nmT" data-w="'+esc(w.replace(/[.]$/,''))+'" style="margin:0 3px 3px 0">'+esc(w)+'</button>').join('')+'</span>'+(hide?'':'<div class="dim">'+esc(x[1])+'</div>')+'</div>').join('')+'<div class="dim" id="nmInfo" style="min-height:18px">語を押すと意味が出ます</div><div class="row"><button class="sm" id="nmHide">'+(hide?'訳を表示する':'訳を隠す（読む練習）')+'</button><button class="sm" id="nmAns">答え合わせ</button></div></div>'}
+$('nemi').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.classList.contains('nmT')){const w=b.dataset.w;$('nmInfo').textContent=w+' ＝ '+nmMean(w);return}
+  if(b.id==='nmHide'){lsSet('ah_nemi_hide',lsGet('ah_nemi_hide')==='1'?'0':'1');paintNemi();return}
+  if(b.id==='nmAns'){lsSet('ah_nemi_hide','0');paintNemi()}});
+function paintHits(){paintHits0();paintNemi()}
 
 // ---- 1日の使用回数
 function usage(){const d=new Date().toISOString().slice(0,10),u=jget('ah_usage',{});return u.d===d?u:{d,n:0}}
@@ -799,7 +838,7 @@ function renderAns(){
   (L.actions||[]).forEach((a,i)=>{h+='<div class="act"><b>'+actLabel(a)+'</b>'+(a.op==='table'?'<div class="dim">'+esc(a.title)+'：'+esc((a.rows[0]||[]).join(' / '))+'</div>':a.op==='flow'?'<div class="dim ans">'+esc(a.text)+'</div>':'')+'<div class="row"><button class="pri sm" data-act="'+i+'">table-pad で開く</button><button class="sm" data-copy="'+i+'">コピー</button></div></div>'});
   h+='<div class="row" id="fbrow"><button data-fb="1" class="sm"'+(L.fb?' disabled':'')+'>👍 役に立った</button><button data-fb="-1" class="sm"'+(L.fb?' disabled':'')+'>👎 違う</button><button data-adopt="1" class="sm"'+(L.adopted?' disabled':'')+'>✓ 採用して育てる</button></div><div id="adoptBox"></div></div>';
   if(L.hits&&L.hits.length){h+='<div class="card"><h2>根拠にした材料（番号を押すと開きます）</h2>'+L.hits.map((d,i)=>'<div class="src" id="src'+(i+1)+'"><b>['+(i+1)+'] '+esc(A.redactTitle(d.title))+'</b> <span class="tag '+d.src+'">'+A.srcLabel(d.src)+'</span>'+(d.tags.length?'<span class="tg">'+esc(d.tags.slice(0,5).join(' · '))+'</span>':'')+'<pre hidden>'+esc(A.material(d,900))+'</pre></div>').join('')+'</div>'}
-  o.innerHTML=h}
+  o.innerHTML=h;paintNemi()}
 async function doAsk(general){
   const q=$('q').value.trim();if(!q){toast('質問を入れてください');return}
   if(!general&&!loaded&&!loading)await loadFeed();
