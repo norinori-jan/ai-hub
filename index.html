@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f1117">
-<meta name="ah-rev" content="ah-r11">
+<meta name="ah-rev" content="ah-r12">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -90,6 +90,8 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
       <div class="row" id="nsAddRow"><input id="nsR" placeholder="秘密にしたい語（社名・案件名・人名など）" style="flex:1"><button class="sm" id="nmSAdd">追加</button></div>
       <div class="dim">パスワードや鍵そのものは、ここに入れないでください（送る前の自動チェックで伏せますが、入力しないのが一番安全です）。</div>
       <div id="nmSL"></div></details>
+    <div class="row" style="margin-top:8px"><button class="sm" id="nmTpW">📚 語彙100語を table-pad の表にする</button><button class="sm" id="nmTpM">⌨ 短縮表を table-pad の表にする</button></div>
+    <div class="dim">元データはこの画面（ai-hub）です。table-pad に送るたびに新しい表ができます（古い表は table-pad で削除してください）。</div>
     <details style="margin-top:8px"><summary><b>⚙ 短縮の登録（キー→指示文）</b></summary>
       <div class="row"><input id="nmK" placeholder="キー（2文字ずつ）例）sate komo" style="flex:1;font-family:ui-monospace,Menlo,monospace"></div>
       <textarea id="nmV" rows="2" placeholder="展開する指示文"></textarea>
@@ -882,6 +884,16 @@ $('nmBox').addEventListener('click',async e=>{
   }catch(err){toast('失敗しました: '+((err&&err.message)||err))}});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&NMKEY)nmLock()});
 
+// ---- 🔗 ネミ語の元データを table-pad と共有（ah-r12）／展開した指示をコピペ方式へ直送
+function nmWordRows(){
+  const rows=[['ネミ語','意味','種類','分解']];
+  Object.keys(NM_LEX).forEach(k=>{const p=k.split('-');rows.push([k,NM_LEX[k],p.length>1?'合成語':'語根',p.length>1?p.map(x=>NM_LEX[x]||'?').join('＋'):''])});
+  return rows}
+function nmMacroRows(){
+  const U=nmUser(),M=nmMacros(),rows=[['キー','指示文','種別']];
+  Object.keys(M).forEach(k=>rows.push([nmKeyShow(k),M[k],U[k]!=null?'自分':'標準']));
+  return rows}
+
 // ---- ⌨ ネミ短縮・仮名化（ah-r10）：ネミ語→指示文の展開（効率化）／秘密語→コードに置換して送り、返事は端末内で元に戻す（秘密）
 const NM_MK='ah_nm_macros',NM_SK='ah_nm_secret';
 const nmNorm=s=>String(s||'').toLowerCase().replace(/-n(?![a-z])/g,'').replace(/[^a-z]/g,'');
@@ -927,10 +939,14 @@ function nmRun(){
   let t=e.text;const tx=$('nmTx').value.trim();if(tx)t+='\n\n'+tx;
   t=nmMask(t);const r=A.redact(t);t=r.text;
   NMLAST=t;
-  o.innerHTML='<pre class="code" style="white-space:pre-wrap">'+esc(t)+'</pre><div class="row"><button class="pri sm" id="nmCopy">コピー</button></div><div class="dim">'+(e.unk?'未知の語が '+e.unk+' 個あります（?）。 ':'')+(r.removed?'秘密らしい行を '+r.removed+' 行、伏せました。 ':'')+nmSecrets().length+' 語を仮名化の対象にしています。</div>'}
+  o.innerHTML='<pre class="code" style="white-space:pre-wrap">'+esc(t)+'</pre><div class="row"><button class="pri sm" id="nmCopy">コピー</button><button class="pri sm" id="nmPaste">📋 コピペ方式へ（コピー1回）</button></div><div class="dim">'+(e.unk?'未知の語が '+e.unk+' 個あります（?）。 ':'')+(r.removed?'秘密らしい行を '+r.removed+' 行、伏せました。 ':'')+nmSecrets().length+' 語を仮名化の対象にしています。</div>'}
 let NMLAST='';
 $('nmBox').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
   if(b.id==='nmGo')return nmRun();
+  if(b.id==='nmTpW')return sendAct({op:'table',title:'ネミ語 学習表',rows:nmWordRows()});
+  if(b.id==='nmTpM')return sendAct({op:'table',title:'ネミ短縮表',rows:nmMacroRows()});
+  if(b.id==='nmPaste'){if(!NMLAST){toast('先に展開してください');return}
+    $('q').value=NMLAST;paintHits();const pb=$('pasteBox');pb.open=true;$('pasteMake').click();pb.scrollIntoView({behavior:'smooth'});return}
   if(b.id==='nmCopy'){return copyText(NMLAST)}
   if(b.id==='nmBack'){if(nmEnc()&&!NMKEY){toast('ロック中です。解除してください');return}const t=$('nmRe').value;$('nmBackOut').innerHTML=t?'<pre class="code" style="white-space:pre-wrap">'+esc(nmUnmask(t))+'</pre><div class="row"><button class="sm" id="nmBackCopy">コピー</button></div>':'';return}
   if(b.id==='nmBackCopy'){return copyText(nmUnmask($('nmRe').value))}
@@ -1108,16 +1124,18 @@ $('askBtn').addEventListener('click',()=>doAsk(false));
 let PHITS=null;
 function fmtHint(fmt){return fmt==='table'?'\n（出力：結果を表にして、actions に op:"table" で入れてください。1行目は列見出し）':fmt==='flow'?'\n（出力：結果を流れ図にして、actions に op:"flow" で入れてください。1行に「A -> B」）':fmt==='text'?'\n（出力：表やコードにせず、文章だけで答えてください）':''}
 $('pasteMake').addEventListener('click',()=>{
+  if(nmEnc()&&!NMKEY){toast('秘密語の表がロック中です。⌨の🔒を解除してから作ってください');return}
   const q=$('q').value.trim();if(!q){toast('先に質問を入れる（話す）');return}
   if(!allDocs().length){$('pasteInfo').textContent='辞書がまだ読み込めていません。📚 で読み込み直してください。';return}
   const fmt=$('fmt').value,code=fmt==='code'||$('codeMode').checked;
   const m=A.makePaste(allDocs(),qx(q)+fmtHint(fmt),{code,rules:RULES,boost:boost()});
-  if(m.none){$('pasteInfo').textContent='辞書には、この話の材料がありません。そのまま普段のAIに質問してください（材料は付きません）。';return}
-  PHITS=m.hits;copyText(m.text);
-  $('pasteInfo').textContent='コピーしました（'+m.text.length+'字・材料 '+m.hits.length+'件'+(m.removed?'・秘密らしい行 '+m.removed+' 行を伏せました':'')+'）。普段のAIに貼って送り、返事をコピーしてください。'});
+  if(m.none){const qt=nmMask(q+fmtHint(fmt));copyText(qt);$('pasteInfo').textContent='辞書には、この話の材料がありません。質問文だけをコピーしました（'+qt.length+'字'+(nmSecrets().length?'・仮名化 '+nmSecrets().length+'語':'')+'）。そのまま普段のAIに貼って送ってください。';return}
+  PHITS=m.hits;const mt=nmMask(m.text);copyText(mt);
+  $('pasteInfo').textContent='コピーしました（'+mt.length+'字'+(nmSecrets().length?'・仮名化 '+nmSecrets().length+'語':'')+'・材料 '+m.hits.length+'件'+(m.removed?'・秘密らしい行 '+m.removed+' 行を伏せました':'')+'）。普段のAIに貼って送り、返事をコピーしてください。'});
 $('pasteTake').addEventListener('click',()=>{
   const t=$('pasteIn').value.trim();if(!t){toast('返事を貼ってください');return}
-  const r=A.parsePasted(A.redact(t).text);
+  if(nmEnc()&&!NMKEY&&/NM\d\d/.test(t))toast('ロック中のため、コード(NM01など)は本名に戻していません');
+  const r=A.parsePasted(A.redact(nmUnmask(t)).text);
   LAST={q:$('q').value.trim()||'（貼り付け）',answer:r.answer,actions:r.actions,code:r.code,isCode:r.isCode,hits:PHITS||curHits(),removed:0,none:false,fromPaste:true};
   renderAns();$('out').scrollIntoView({behavior:'smooth'});toast('取り込みました（トークン0）')});
 $('pasteClr').addEventListener('click',()=>{$('pasteIn').value='';$('pasteInfo').textContent=''});
