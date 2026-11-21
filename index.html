@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f1117">
-<meta name="ah-rev" content="ah-r9">
+<meta name="ah-rev" content="ah-r10">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -75,6 +75,26 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
   <div id="out"></div>
   <div id="hits"></div>
   <div id="nemi"></div>
+  <details class="card" id="nmBox"><summary><b>⌨ ネミ短縮・仮名化（効率化と秘密）</b></summary>
+    <div class="dim" style="margin:6px 0">ネミ語を打つと、長い指示文に展開します。秘密語は NM01 のようなコードに置き換えるので、AI には本名が出ません（対応表はこの端末の中だけ。AIには送りません）。</div>
+    <textarea id="nmIn" rows="2" placeholder="ネミ語を入れる　例）sate komo　／　miro meka" style="font-family:ui-monospace,Menlo,monospace"></textarea>
+    <textarea id="nmTx" rows="3" placeholder="対象のコードや文章（任意）。秘密語は自動でコードに置き換わります"></textarea>
+    <div class="row"><button class="pri sm" id="nmGo">展開する</button></div>
+    <div id="nmOut"></div>
+    <label>AI の返事を貼ると、コードを本名に戻します（端末内だけで処理）</label>
+    <textarea id="nmRe" rows="3" placeholder="返事をここに貼る"></textarea>
+    <div class="row"><button class="sm" id="nmBack">本名に戻す</button></div>
+    <div id="nmBackOut"></div>
+    <details style="margin-top:8px"><summary><b>🔒 秘密語の仮名化リスト</b></summary>
+      <div class="row"><input id="nsR" placeholder="秘密にしたい語（社名・案件名・人名など）" style="flex:1"><button class="sm" id="nmSAdd">追加</button></div>
+      <div class="dim">パスワードや鍵そのものは、ここに入れないでください（送る前の自動チェックで伏せますが、入力しないのが一番安全です）。</div>
+      <div id="nmSL"></div></details>
+    <details style="margin-top:8px"><summary><b>⚙ 短縮の登録（キー→指示文）</b></summary>
+      <div class="row"><input id="nmK" placeholder="キー（2文字ずつ）例）sate komo" style="flex:1;font-family:ui-monospace,Menlo,monospace"></div>
+      <textarea id="nmV" rows="2" placeholder="展開する指示文"></textarea>
+      <div class="row"><button class="sm" id="nmMAdd">登録</button></div>
+      <div id="nmML"></div></details>
+  </details>
   <details class="card" id="moreBox"><summary><b>もっと：表・流れ・コードにする／AIに聞く／声の設定</b></summary>
     <div class="row"><select id="fmt" aria-label="出力の形"><option value="auto">出力：おまかせ</option><option value="table">出力：表にする</option><option value="flow">出力：流れ図にする</option><option value="code">出力：コード</option><option value="text">出力：文章だけ</option></select></div>
     <label class="chk"><input type="checkbox" id="codeMode"> 💻 コードを書いてもらう（ルール帳を守らせる）</label>
@@ -813,6 +833,67 @@ $('nemi').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)
   if(b.id==='nmHide'){lsSet('ah_nemi_hide',lsGet('ah_nemi_hide')==='1'?'0':'1');paintNemi();return}
   if(b.id==='nmAns'){lsSet('ah_nemi_hide','0');paintNemi()}});
 function paintHits(){paintHits0();paintNemi()}
+// ---- ⌨ ネミ短縮・仮名化（ah-r10）：ネミ語→指示文の展開（効率化）／秘密語→コードに置換して送り、返事は端末内で元に戻す（秘密）
+const NM_MK='ah_nm_macros',NM_SK='ah_nm_secret';
+const nmNorm=s=>String(s||'').toLowerCase().replace(/-n(?![a-z])/g,'').replace(/[^a-z]/g,'');
+const NM_DEF=(function(){const d={
+ 'sate komo':'次のコードを実装してください。ルール帳（ダメ／よい）を守ってください。',
+ 'komi me':'次のエラーの原因を調べて、直し方を示してください。',
+ 'miro meka':'次のバグの原因を調べて、わかった点を短く要約してください。',
+ 'koro mi':'次のアルゴリズムの誤りを直してください。',
+ 'roki sira':'計画を立てて、手順をフロー（流れ図）にしてください。',
+ 'huki':'今日の復習を出してください。',
+ 'seki':'選択肢を比べて、おすすめを1つ選び、理由を短く書いてください。',
+ 'simo':'次の内容を図（表または流れ図）にしてください。',
+ 'nuri':'数値の比率を計算して、表にしてください。',
+ 'tute':'次の作業を実行する道具（コマンド）と手順を、そのまま貼れる形で出してください。'};
+ const o={};Object.keys(d).forEach(k=>o[nmNorm(k)]=d[k]);return o})();
+const nmUser=()=>{const m=jget(NM_MK,{});return m&&typeof m==='object'&&!Array.isArray(m)?m:{}};
+const nmMacros=()=>Object.assign({},NM_DEF,nmUser());
+const nmSecrets=()=>{const a=jget(NM_SK,[]);return Array.isArray(a)?a.filter(x=>x&&x.r&&x.c):[]};
+const nmKeyShow=k=>(k.match(/../g)||[k]).join('-');
+function nmExpand(src){
+  const k=nmNorm(src);if(!k)return{text:'',empty:true};
+  if(k.length%2)return{err:'文字数が奇数です。語根は2文字ずつです（例: sate komo）'};
+  const ch=k.match(/../g),M=nmMacros(),out=[];let i=0,unk=0;
+  while(i<ch.length){let hit=null;
+    for(let n=Math.min(6,ch.length-i);n>=1;n--){const key=ch.slice(i,i+n).join('');if(M[key]!=null){hit=[n,M[key]];break}}
+    if(hit){out.push(hit[1]);i+=hit[0]}
+    else{const c=ch[i],m=NM_LEX[c]||NM_TENSE[c];if(!m)unk++;out.push('〔'+c+'＝'+(m||'?')+'〕');i++}}
+  return{text:out.join('\n'),unk}}
+const nmRe=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+function nmMask(t){let r=String(t);nmSecrets().slice().sort((a,b)=>b.r.length-a.r.length).forEach(x=>{r=r.replace(new RegExp(nmRe(x.r),'gi'),x.c)});return r}
+function nmUnmask(t){let r=String(t);nmSecrets().slice().sort((a,b)=>b.c.length-a.c.length).forEach(x=>{r=r.replace(new RegExp(nmRe(x.c),'g'),x.r)});return r}
+function nmPaintLists(){
+  const U=nmUser(),M=nmMacros();
+  $('nmML').innerHTML=Object.keys(M).map(k=>'<div class="src"><b style="font-family:ui-monospace,Menlo,monospace">'+esc(nmKeyShow(k))+'</b> <span class="tag">'+(U[k]!=null?'自分':'標準')+'</span><div class="dim">'+esc(M[k])+'</div>'+(U[k]!=null?'<button class="sm" data-nmdel="'+esc(k)+'">削除（標準に戻す）</button>':'')+'</div>').join('');
+  const S=nmSecrets();
+  $('nmSL').innerHTML=S.length?S.map((x,i)=>'<div class="src"><b>'+esc(x.r)+'</b> → <span style="font-family:ui-monospace,Menlo,monospace">'+esc(x.c)+'</span> <button class="sm" data-nmsdel="'+i+'">削除</button></div>').join(''):'<div class="dim">まだありません</div>'}
+function nmRun(){
+  const e=nmExpand($('nmIn').value),o=$('nmOut');
+  if(e.empty){o.innerHTML='<div class="dim">ネミ語を入れてください（例: sate komo）</div>';return}
+  if(e.err){o.innerHTML='<div class="card err">'+esc(e.err)+'</div>';return}
+  let t=e.text;const tx=$('nmTx').value.trim();if(tx)t+='\n\n'+tx;
+  t=nmMask(t);const r=A.redact(t);t=r.text;
+  NMLAST=t;
+  o.innerHTML='<pre class="code" style="white-space:pre-wrap">'+esc(t)+'</pre><div class="row"><button class="pri sm" id="nmCopy">コピー</button></div><div class="dim">'+(e.unk?'未知の語が '+e.unk+' 個あります（?）。 ':'')+(r.removed?'秘密らしい行を '+r.removed+' 行、伏せました。 ':'')+nmSecrets().length+' 語を仮名化の対象にしています。</div>'}
+let NMLAST='';
+$('nmBox').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.id==='nmGo')return nmRun();
+  if(b.id==='nmCopy'){return copyText(NMLAST)}
+  if(b.id==='nmBack'){const t=$('nmRe').value;$('nmBackOut').innerHTML=t?'<pre class="code" style="white-space:pre-wrap">'+esc(nmUnmask(t))+'</pre><div class="row"><button class="sm" id="nmBackCopy">コピー</button></div>':'';return}
+  if(b.id==='nmBackCopy'){return copyText(nmUnmask($('nmRe').value))}
+  if(b.id==='nmMAdd'){const k=nmNorm($('nmK').value),v=$('nmV').value.trim();
+    if(!k||k.length%2){toast('キーは2文字ずつの語根で入れてください');return}
+    if(!v){toast('展開する指示文を入れてください');return}
+    const U=nmUser();U[k]=v;lsSet(NM_MK,JSON.stringify(U));$('nmK').value='';$('nmV').value='';nmPaintLists();toast('登録しました');return}
+  if(b.dataset.nmdel){const U=nmUser();delete U[b.dataset.nmdel];lsSet(NM_MK,JSON.stringify(U));nmPaintLists();return}
+  if(b.id==='nmSAdd'){const r=$('nsR').value.trim();if(!r){toast('秘密にしたい語を入れてください');return}
+    const S=nmSecrets();if(S.some(x=>x.r.toLowerCase()===r.toLowerCase())){toast('すでにあります');return}
+    let n=S.length+1,c;do{c='NM'+String(n).padStart(2,'0');n++}while(S.some(x=>x.c===c));
+    S.push({r,c});lsSet(NM_SK,JSON.stringify(S));$('nsR').value='';nmPaintLists();toast('仮名化の対象に入れました: '+c);return}
+  if(b.dataset.nmsdel!==undefined){const S=nmSecrets();S.splice(+b.dataset.nmsdel,1);lsSet(NM_SK,JSON.stringify(S));nmPaintLists()}});
+nmPaintLists();
 
 // ---- 1日の使用回数
 function usage(){const d=new Date().toISOString().slice(0,10),u=jget('ah_usage',{});return u.d===d?u:{d,n:0}}
