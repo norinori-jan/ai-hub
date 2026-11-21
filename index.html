@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f1117">
-<meta name="ah-rev" content="ah-r10">
+<meta name="ah-rev" content="ah-r11">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -86,7 +86,8 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
     <div class="row"><button class="sm" id="nmBack">本名に戻す</button></div>
     <div id="nmBackOut"></div>
     <details style="margin-top:8px"><summary><b>🔒 秘密語の仮名化リスト</b></summary>
-      <div class="row"><input id="nsR" placeholder="秘密にしたい語（社名・案件名・人名など）" style="flex:1"><button class="sm" id="nmSAdd">追加</button></div>
+      <div id="nsCtl"></div>
+      <div class="row" id="nsAddRow"><input id="nsR" placeholder="秘密にしたい語（社名・案件名・人名など）" style="flex:1"><button class="sm" id="nmSAdd">追加</button></div>
       <div class="dim">パスワードや鍵そのものは、ここに入れないでください（送る前の自動チェックで伏せますが、入力しないのが一番安全です）。</div>
       <div id="nmSL"></div></details>
     <details style="margin-top:8px"><summary><b>⚙ 短縮の登録（キー→指示文）</b></summary>
@@ -833,6 +834,54 @@ $('nemi').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)
   if(b.id==='nmHide'){lsSet('ah_nemi_hide',lsGet('ah_nemi_hide')==='1'?'0':'1');paintNemi();return}
   if(b.id==='nmAns'){lsSet('ah_nemi_hide','0');paintNemi()}});
 function paintHits(){paintHits0();paintNemi()}
+// ---- 🔐 秘密語の対応表をパスコードで暗号化（ah-r11）：PBKDF2(SHA-256) → AES-GCM。鍵は端末内の一時メモリだけ
+const NM_EK='ah_nm_secret_enc';
+let NMKEY=null,NMSALT=null,NMMEM=null,NMTMR=null;
+const nmEnc=()=>{const o=jget(NM_EK,null);return o&&o.ct?o:null};
+const nm64=u=>{let s='';for(let i=0;i<u.length;i++)s+=String.fromCharCode(u[i]);return btoa(s)};
+const nmU8=b=>Uint8Array.from(atob(b),c=>c.charCodeAt(0));
+async function nmDerive(pass,salt,it){
+  const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(pass),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:it,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['encrypt','decrypt'])}
+async function nmPut(S){
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},NMKEY,new TextEncoder().encode(JSON.stringify(S)));
+  lsSet(NM_EK,JSON.stringify({v:1,it:600000,s:nm64(NMSALT),iv:nm64(iv),ct:nm64(new Uint8Array(ct))}));NMMEM=S}
+async function nmSecSave(S){if(nmEnc()){if(!NMKEY)throw new Error('locked');await nmPut(S)}else lsSet(NM_SK,JSON.stringify(S))}
+function nmLock(){NMKEY=null;NMMEM=null;clearTimeout(NMTMR);if($('nsCtl'))nmPaintLists()}
+function nmTouch(){clearTimeout(NMTMR);if(NMKEY)NMTMR=setTimeout(nmLock,5*60*1000)}
+function nmPaintSec(){
+  const c=$('nsCtl');if(!c)return;const en=nmEnc(),open=!!NMKEY;
+  const pw='<input id="nsP" type="password" autocomplete="off" placeholder="パスコード（8文字以上）" style="flex:1">';
+  if(!en){c.innerHTML='<div class="dim">状態：暗号化なし（この端末の保存領域に、そのまま入っています）</div><div class="row">'+pw+'<input id="nsP2" type="password" autocomplete="off" placeholder="もう一度" style="flex:1"></div><div class="row"><button class="pri sm" id="nsEnc">パスコードで暗号化する</button></div><div class="dim">パスコードを忘れると、この表は戻せません（作り直しになります）。鍵はどこにも保存しません。</div>';$('nsAddRow').hidden=false}
+  else if(!open){c.innerHTML='<div class="dim">状態：🔒 ロック中（暗号化済み）。解除するまで、展開・本名に戻すは使えません。</div><div class="row">'+pw+'<button class="pri sm" id="nsUnl">解除</button></div>';$('nsAddRow').hidden=true}
+  else{c.innerHTML='<div class="dim">状態：🔓 解除中（操作がなければ5分で自動的にロック）</div><div class="row"><button class="sm" id="nsLock">今ロックする</button><button class="sm" id="nsOff">暗号化をやめる</button></div>';$('nsAddRow').hidden=false}}
+$('nmBox').addEventListener('click',async e=>{
+  nmTouch();const b=e.target.closest('button');if(!b)return;
+  try{
+  if(b.id==='nsEnc'){
+    const p=$('nsP').value,p2=$('nsP2').value;
+    if(p.length<8){toast('パスコードは8文字以上にしてください');return}
+    if(p!==p2){toast('2回の入力が一致しません');return}
+    b.disabled=true;const S=nmSecrets().slice();
+    NMSALT=crypto.getRandomValues(new Uint8Array(16));NMKEY=await nmDerive(p,NMSALT,600000);
+    await nmPut(S);try{localStorage.removeItem(NM_SK)}catch(_){}
+    nmTouch();nmPaintLists();toast('暗号化しました（'+S.length+'語）');return}
+  if(b.id==='nsUnl'){
+    const p=$('nsP').value;if(!p){toast('パスコードを入れてください');return}
+    b.disabled=true;const o=nmEnc();
+    try{const s=nmU8(o.s),k=await nmDerive(p,s,o.it||600000);
+      const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:nmU8(o.iv)},k,nmU8(o.ct));
+      NMMEM=JSON.parse(new TextDecoder().decode(pt));NMKEY=k;NMSALT=s;nmTouch();nmPaintLists();toast('解除しました')}
+    catch(_){b.disabled=false;toast('パスコードが違います')}return}
+  if(b.id==='nsLock'){nmLock();toast('ロックしました');return}
+  if(b.id==='nsOff'){
+    if(!confirm('暗号化をやめると、秘密語の表が、この端末にそのまま保存されます。よいですか？'))return;
+    const S=nmSecrets().slice();lsSet(NM_SK,JSON.stringify(S));try{localStorage.removeItem(NM_EK)}catch(_){}
+    NMKEY=null;NMMEM=null;clearTimeout(NMTMR);nmPaintLists();toast('暗号化をやめました')}
+  }catch(err){toast('失敗しました: '+((err&&err.message)||err))}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&NMKEY)nmLock()});
+
 // ---- ⌨ ネミ短縮・仮名化（ah-r10）：ネミ語→指示文の展開（効率化）／秘密語→コードに置換して送り、返事は端末内で元に戻す（秘密）
 const NM_MK='ah_nm_macros',NM_SK='ah_nm_secret';
 const nmNorm=s=>String(s||'').toLowerCase().replace(/-n(?![a-z])/g,'').replace(/[^a-z]/g,'');
@@ -850,7 +899,7 @@ const NM_DEF=(function(){const d={
  const o={};Object.keys(d).forEach(k=>o[nmNorm(k)]=d[k]);return o})();
 const nmUser=()=>{const m=jget(NM_MK,{});return m&&typeof m==='object'&&!Array.isArray(m)?m:{}};
 const nmMacros=()=>Object.assign({},NM_DEF,nmUser());
-const nmSecrets=()=>{const a=jget(NM_SK,[]);return Array.isArray(a)?a.filter(x=>x&&x.r&&x.c):[]};
+const nmSecrets=()=>{if(nmEnc())return NMMEM||[];const a=jget(NM_SK,[]);return Array.isArray(a)?a.filter(x=>x&&x.r&&x.c):[]};
 const nmKeyShow=k=>(k.match(/../g)||[k]).join('-');
 function nmExpand(src){
   const k=nmNorm(src);if(!k)return{text:'',empty:true};
@@ -865,12 +914,14 @@ const nmRe=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 function nmMask(t){let r=String(t);nmSecrets().slice().sort((a,b)=>b.r.length-a.r.length).forEach(x=>{r=r.replace(new RegExp(nmRe(x.r),'gi'),x.c)});return r}
 function nmUnmask(t){let r=String(t);nmSecrets().slice().sort((a,b)=>b.c.length-a.c.length).forEach(x=>{r=r.replace(new RegExp(nmRe(x.c),'g'),x.r)});return r}
 function nmPaintLists(){
-  const U=nmUser(),M=nmMacros();
+  nmPaintSec();const U=nmUser(),M=nmMacros();
   $('nmML').innerHTML=Object.keys(M).map(k=>'<div class="src"><b style="font-family:ui-monospace,Menlo,monospace">'+esc(nmKeyShow(k))+'</b> <span class="tag">'+(U[k]!=null?'自分':'標準')+'</span><div class="dim">'+esc(M[k])+'</div>'+(U[k]!=null?'<button class="sm" data-nmdel="'+esc(k)+'">削除（標準に戻す）</button>':'')+'</div>').join('');
   const S=nmSecrets();
+  if(nmEnc()&&!NMKEY){$('nmSL').innerHTML='<div class="dim">🔒 ロック中</div>'}else
   $('nmSL').innerHTML=S.length?S.map((x,i)=>'<div class="src"><b>'+esc(x.r)+'</b> → <span style="font-family:ui-monospace,Menlo,monospace">'+esc(x.c)+'</span> <button class="sm" data-nmsdel="'+i+'">削除</button></div>').join(''):'<div class="dim">まだありません</div>'}
 function nmRun(){
   const e=nmExpand($('nmIn').value),o=$('nmOut');
+  if(nmEnc()&&!NMKEY){o.innerHTML='<div class="card err">秘密語の表がロック中です。🔒 を開いて解除してください（解除しないと、本名が仮名化されないまま出てしまうため、展開しません）。</div>';return}
   if(e.empty){o.innerHTML='<div class="dim">ネミ語を入れてください（例: sate komo）</div>';return}
   if(e.err){o.innerHTML='<div class="card err">'+esc(e.err)+'</div>';return}
   let t=e.text;const tx=$('nmTx').value.trim();if(tx)t+='\n\n'+tx;
@@ -881,7 +932,7 @@ let NMLAST='';
 $('nmBox').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
   if(b.id==='nmGo')return nmRun();
   if(b.id==='nmCopy'){return copyText(NMLAST)}
-  if(b.id==='nmBack'){const t=$('nmRe').value;$('nmBackOut').innerHTML=t?'<pre class="code" style="white-space:pre-wrap">'+esc(nmUnmask(t))+'</pre><div class="row"><button class="sm" id="nmBackCopy">コピー</button></div>':'';return}
+  if(b.id==='nmBack'){if(nmEnc()&&!NMKEY){toast('ロック中です。解除してください');return}const t=$('nmRe').value;$('nmBackOut').innerHTML=t?'<pre class="code" style="white-space:pre-wrap">'+esc(nmUnmask(t))+'</pre><div class="row"><button class="sm" id="nmBackCopy">コピー</button></div>':'';return}
   if(b.id==='nmBackCopy'){return copyText(nmUnmask($('nmRe').value))}
   if(b.id==='nmMAdd'){const k=nmNorm($('nmK').value),v=$('nmV').value.trim();
     if(!k||k.length%2){toast('キーは2文字ずつの語根で入れてください');return}
@@ -889,10 +940,10 @@ $('nmBox').addEventListener('click',e=>{const b=e.target.closest('button');if(!b
     const U=nmUser();U[k]=v;lsSet(NM_MK,JSON.stringify(U));$('nmK').value='';$('nmV').value='';nmPaintLists();toast('登録しました');return}
   if(b.dataset.nmdel){const U=nmUser();delete U[b.dataset.nmdel];lsSet(NM_MK,JSON.stringify(U));nmPaintLists();return}
   if(b.id==='nmSAdd'){const r=$('nsR').value.trim();if(!r){toast('秘密にしたい語を入れてください');return}
-    const S=nmSecrets();if(S.some(x=>x.r.toLowerCase()===r.toLowerCase())){toast('すでにあります');return}
+    const S=nmSecrets().slice();if(S.some(x=>x.r.toLowerCase()===r.toLowerCase())){toast('すでにあります');return}
     let n=S.length+1,c;do{c='NM'+String(n).padStart(2,'0');n++}while(S.some(x=>x.c===c));
-    S.push({r,c});lsSet(NM_SK,JSON.stringify(S));$('nsR').value='';nmPaintLists();toast('仮名化の対象に入れました: '+c);return}
-  if(b.dataset.nmsdel!==undefined){const S=nmSecrets();S.splice(+b.dataset.nmsdel,1);lsSet(NM_SK,JSON.stringify(S));nmPaintLists()}});
+    S.push({r,c});$('nsR').value='';nmSecSave(S).then(()=>{nmPaintLists();toast('仮名化の対象に入れました: '+c)}).catch(()=>toast('ロック中です'));return}
+  if(b.dataset.nmsdel!==undefined){const S=nmSecrets().slice();S.splice(+b.dataset.nmsdel,1);nmSecSave(S).then(nmPaintLists).catch(()=>toast('ロック中です'))}});
 nmPaintLists();
 
 // ---- 1日の使用回数
