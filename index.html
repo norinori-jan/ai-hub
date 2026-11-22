@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f1117">
-<meta name="ah-rev" content="ah-r13">
+<meta name="ah-rev" content="ah-r14">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -182,8 +182,13 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
   <div class="card dim">送る前に、保護メモ・「AI作成／まとまり／用語／スライス」タグのメモ・鍵やトークンらしい行は必ず外します。AIの作ったものを、表・集合・フローにするのは、あなたが押したときだけです。</div>
 </section>
 
+<section id="s-nm" hidden>
+  <div class="card" id="nmTop"></div>
+</section>
+
 <nav id="nav">
   <button data-t="ask" class="on"><span>💬</span>聞く</button>
+  <button data-t="nm"><span>⌨</span>ネミ</button>
   <button data-t="know"><span>📚</span>知識</button>
   <button data-t="plan"><span>🧭</span>整理</button>
   <button data-t="grow"><span>🌱</span>育てる</button>
@@ -960,6 +965,25 @@ $('nmBox').addEventListener('click',e=>{const b=e.target.closest('button');if(!b
   if(b.id==='nmPkChk')return nmPkCheck();
   if(b.id==='nmPkImp')return nmPkImport()});
 
+// ---- ⌨ ネミ タブ（ah-r14）：短縮をタップで入力／最近の入力／状態表示。既存の⌨の欄をこのタブへ移して使う
+$('s-nm').appendChild($('nmBox'));$('nmBox').open=true;
+const NM_HK='ah_nm_hist';
+function nmHist(v){v=String(v||'').trim().slice(0,40);if(!v)return;let h=jget(NM_HK,[]);if(!Array.isArray(h))h=[];h=[v].concat(h.filter(x=>x!==v)).slice(0,6);lsSet(NM_HK,JSON.stringify(h))}
+function nmPaintTop(){
+  const o=$('nmTop');if(!o)return;
+  const M=nmMacros(),U=nmUser(),en=nmEnc(),n=nmSecrets().length;
+  const st=en?(NMKEY?'🔓 秘密語 '+n+' 語を仮名化中（暗号化済み）':'🔒 ロック中：解除するまで展開できません（下の🔒を開く）'):(n?'秘密語 '+n+' 語を仮名化中（暗号化なし）':'秘密語は未登録（下の🔒で追加できます）');
+  let h=jget(NM_HK,[]);if(!Array.isArray(h))h=[];
+  o.innerHTML='<h2>⌨ ネミ（短縮と仮名化）</h2><div class="dim" style="margin-bottom:6px">'+esc(st)+'</div>'+
+   '<div class="dim">短縮をタップすると入力されます（続けて押すと連結・横にスクロール）</div>'+
+   '<div style="display:flex;gap:6px;margin:6px 0;overflow-x:auto;padding-bottom:6px">'+Object.keys(M).map(k=>'<button class="sm nmC" data-ck="'+esc(k)+'" style="text-align:left;flex:none;white-space:nowrap"><b style="font-family:ui-monospace,Menlo,monospace">'+esc(nmKeyShow(k))+'</b><span class="dim"> '+esc(M[k].replace(/^次の/,'').slice(0,9))+(U[k]!=null?' ★':'')+'</span></button>').join('')+'</div>'+
+   (h.length?'<div class="dim">最近の入力</div><div style="display:flex;gap:6px;margin:6px 0;overflow-x:auto;padding-bottom:6px">'+h.map(x=>'<button class="sm nmH" data-hv="'+esc(x)+'" style="font-family:ui-monospace,Menlo,monospace;flex:none;white-space:nowrap">'+esc(x)+'</button>').join('')+'</div>':'<div class="dim" style="margin-top:6px">はじめに：①短縮をタップ → ②下の欄に対象を貼る → ③「📋 コピペ方式へ」で、コピーまで一度に終わります。</div>')+
+   '<div class="row"><button class="sm" id="nmClr">入力を消す</button></div>'}
+$('s-nm').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.classList.contains('nmC')){const v=$('nmIn').value.trim();$('nmIn').value=(v?v+' ':'')+b.dataset.ck;nmRun();return}
+  if(b.classList.contains('nmH')){$('nmIn').value=b.dataset.hv;nmRun();return}
+  if(b.id==='nmClr'){$('nmIn').value='';$('nmTx').value='';$('nmOut').innerHTML='';NMLAST=''}});
+
 // ---- ⌨ ネミ短縮・仮名化（ah-r10）：ネミ語→指示文の展開（効率化）／秘密語→コードに置換して送り、返事は端末内で元に戻す（秘密）
 const NM_MK='ah_nm_macros',NM_SK='ah_nm_secret';
 const nmNorm=s=>String(s||'').toLowerCase().replace(/-n(?![a-z])/g,'').replace(/[^a-z]/g,'');
@@ -992,7 +1016,7 @@ const nmRe=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 function nmMask(t){let r=String(t);nmSecrets().slice().sort((a,b)=>b.r.length-a.r.length).forEach(x=>{r=r.replace(new RegExp(nmRe(x.r),'gi'),x.c)});return r}
 function nmUnmask(t){let r=String(t);nmSecrets().slice().sort((a,b)=>b.c.length-a.c.length).forEach(x=>{r=r.replace(new RegExp(nmRe(x.c),'g'),x.r)});return r}
 function nmPaintLists(){
-  nmPaintSec();const U=nmUser(),M=nmMacros();
+  nmPaintSec();nmPaintTop();const U=nmUser(),M=nmMacros();
   $('nmML').innerHTML=Object.keys(M).map(k=>'<div class="src"><b style="font-family:ui-monospace,Menlo,monospace">'+esc(nmKeyShow(k))+'</b> <span class="tag">'+(U[k]!=null?'自分':'標準')+'</span><div class="dim">'+esc(M[k])+'</div>'+(U[k]!=null?'<button class="sm" data-nmdel="'+esc(k)+'">削除（標準に戻す）</button>':'')+'</div>').join('');
   const S=nmSecrets();
   if(nmEnc()&&!NMKEY){$('nmSL').innerHTML='<div class="dim">🔒 ロック中</div>'}else
@@ -1004,7 +1028,7 @@ function nmRun(){
   if(e.err){o.innerHTML='<div class="card err">'+esc(e.err)+'</div>';return}
   let t=e.text;const tx=$('nmTx').value.trim();if(tx)t+='\n\n'+tx;
   t=nmMask(t);const r=A.redact(t);t=r.text;
-  NMLAST=t;
+  NMLAST=t;nmHist($('nmIn').value);nmPaintTop();
   o.innerHTML='<pre class="code" style="white-space:pre-wrap">'+esc(t)+'</pre><div class="row"><button class="pri sm" id="nmCopy">コピー</button><button class="pri sm" id="nmPaste">📋 コピペ方式へ（コピー1回）</button></div><div class="dim">'+(e.unk?'未知の語が '+e.unk+' 個あります（?）。 ':'')+(r.removed?'秘密らしい行を '+r.removed+' 行、伏せました。 ':'')+nmSecrets().length+' 語を仮名化の対象にしています。</div>'}
 let NMLAST='';
 $('nmBox').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
@@ -1182,7 +1206,7 @@ function saveCfg(){
 // ---- イベント
 $('nav').addEventListener('click',e=>{const b=e.target.closest('button[data-t]');if(!b)return;
   document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b));
-  ['ask','know','plan','grow','set'].forEach(t=>{$('s-'+t).hidden=t!==b.dataset.t});
+  ['ask','nm','know','plan','grow','set'].forEach(t=>{$('s-'+t).hidden=t!==b.dataset.t});if(b.dataset.t==='nm')nmPaintTop();
   if(b.dataset.t==='plan')paintPlan();
   if(b.dataset.t==='set')paintCfg();if(b.dataset.t==='know')paintKnow();if(b.dataset.t==='grow')paintGrow();window.scrollTo(0,0)});
 $('askBtn').addEventListener('click',()=>doAsk(false));
@@ -1192,7 +1216,7 @@ function fmtHint(fmt){return fmt==='table'?'\n（出力：結果を表にして�
 $('pasteMake').addEventListener('click',()=>{
   if(nmEnc()&&!NMKEY){toast('秘密語の表がロック中です。⌨の🔒を解除してから作ってください');return}
   const q=$('q').value.trim();if(!q){toast('先に質問を入れる（話す）');return}
-  if(!allDocs().length){$('pasteInfo').textContent='辞書がまだ読み込めていません。📚 で読み込み直してください。';return}
+  if(!allDocs().length){const qt0=nmMask(q+fmtHint($('fmt').value));copyText(qt0);$('pasteInfo').textContent='辞書が読み込めていないため、質問文だけをコピーしました（'+qt0.length+'字）。そのまま普段のAIに貼って送れます。';return}
   const fmt=$('fmt').value,code=fmt==='code'||$('codeMode').checked;
   const m=A.makePaste(allDocs(),qx(q)+fmtHint(fmt),{code,rules:RULES,boost:boost()});
   if(m.none){const qt=nmMask(q+fmtHint(fmt));copyText(qt);$('pasteInfo').textContent='辞書には、この話の材料がありません。質問文だけをコピーしました（'+qt.length+'字'+(nmSecrets().length?'・仮名化 '+nmSecrets().length+'語':'')+'）。そのまま普段のAIに貼って送ってください。';return}
