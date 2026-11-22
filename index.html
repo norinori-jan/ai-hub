@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f1117">
-<meta name="ah-rev" content="ah-r12">
+<meta name="ah-rev" content="ah-r13">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -90,6 +90,14 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
       <div class="row" id="nsAddRow"><input id="nsR" placeholder="秘密にしたい語（社名・案件名・人名など）" style="flex:1"><button class="sm" id="nmSAdd">追加</button></div>
       <div class="dim">パスワードや鍵そのものは、ここに入れないでください（送る前の自動チェックで伏せますが、入力しないのが一番安全です）。</div>
       <div id="nmSL"></div></details>
+    <details style="margin-top:8px"><summary><b>📦 共有パック（書き出し／取り込み）</b></summary>
+      <div class="dim" style="margin:6px 0">自分の短縮だけを、ほかの人と交換できます。秘密語の表（本名とコードの対応）は、入りません。取り込むときは、危なそうな文を自動で見つけて、初期状態で外します。</div>
+      <div class="row"><button class="sm" id="nmPkList">📤 書き出す短縮を選ぶ</button></div>
+      <div id="nmPkE"></div>
+      <label>📥 パックを取り込む（貼り付け）</label>
+      <textarea id="nmPkIn" rows="4" placeholder="書き出したパックの文字を貼る" style="font-family:ui-monospace,Menlo,monospace;font-size:12px"></textarea>
+      <div class="row"><button class="sm" id="nmPkChk">中身を確認する</button></div>
+      <div id="nmPkI"></div></details>
     <div class="row" style="margin-top:8px"><button class="sm" id="nmTpW">📚 語彙100語を table-pad の表にする</button><button class="sm" id="nmTpM">⌨ 短縮表を table-pad の表にする</button></div>
     <div class="dim">元データはこの画面（ai-hub）です。table-pad に送るたびに新しい表ができます（古い表は table-pad で削除してください）。</div>
     <details style="margin-top:8px"><summary><b>⚙ 短縮の登録（キー→指示文）</b></summary>
@@ -893,6 +901,64 @@ function nmMacroRows(){
   const U=nmUser(),M=nmMacros(),rows=[['キー','指示文','種別']];
   Object.keys(M).forEach(k=>rows.push([nmKeyShow(k),M[k],U[k]!=null?'自分':'標準']));
   return rows}
+
+// ---- 📦 共有パック（ah-r13）：自分の短縮だけを書き出し／取り込み。秘密語の表は構造上入らない
+const NM_OVR=/ignore\s+(all\s+|any\s+|the\s+)?(previous|above|prior)|disregard|system\s*prompt|システムプロンプト|前の指示を(無視|忘れ)|指示を無視|これまでの(指示|ルール)を(無視|忘れ)|ルールを(無視|無効)/i;
+const NM_EXF=/送信して|アップロード|送って|webhook|curl|Invoke-WebRequest|fetch\s*\(|POST\s/i;
+function nmFlags(text,own){
+  const f=[];text=String(text);
+  if(/https?:\/\/|www\./i.test(text))f.push('URL');
+  if(NM_OVR.test(text))f.push('指示の上書き');
+  if(NM_EXF.test(text))f.push('外部送信を促す語');
+  try{if(A.redact(text).removed>0)f.push('鍵・トークンらしい行')}catch(_){}
+  if(/NM\d\d/.test(text))f.push('仮名コード');
+  if(text.length>300)f.push('長い（300字超）');
+  if(own&&nmSecrets().some(x=>text.toLowerCase().indexOf(x.r.toLowerCase())>=0))f.push('秘密語を含む');
+  return f}
+let NMPK=null;
+function nmPkExpList(){
+  const o=$('nmPkE');
+  if(nmEnc()&&!NMKEY){o.innerHTML='<div class="card err">秘密語の表がロック中です。🔒 を解除してください（秘密語が自分の短縮に混ざっていないか、照合するためです）。</div>';return}
+  const U=nmUser(),ks=Object.keys(U);
+  if(!ks.length){o.innerHTML='<div class="dim">書き出せる「自分の短縮」がまだありません（⚙ 短縮の登録で足してください）。標準の短縮は、アプリに入っているので書き出しません。</div>';return}
+  o.innerHTML='<div class="dim">書き出す短縮を選んでください（注意があるものは、初期状態で外してあります）。</div>'+ks.map(k=>{const f=nmFlags(U[k],true),hard=f.indexOf('秘密語を含む')>=0||f.indexOf('仮名コード')>=0;
+    return '<div class="src"><label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" data-pk="'+esc(k)+'"'+(f.length?'':' checked')+(hard?' disabled':'')+'><span><b style="font-family:ui-monospace,Menlo,monospace">'+esc(nmKeyShow(k))+'</b><div class="dim">'+esc(U[k])+'</div>'+(f.length?'<div style="color:#ffb86b;font-size:12px">⚠ '+esc(f.join(' / '))+(hard?'（書き出せません）':'')+'</div>':'')+'</span></label></div>'}).join('')+
+    '<div class="row"><input id="nmPkName" placeholder="パックの名前（30字まで）" maxlength="30" style="flex:1"></div><div class="row"><button class="pri sm" id="nmPkMake">パックを作る</button></div><div id="nmPkOut"></div>'}
+function nmPkMake(){
+  const U=nmUser(),ms=[];
+  document.querySelectorAll('#nmPkE input[data-pk]:checked').forEach(c=>{const k=c.dataset.pk;if(U[k]!=null)ms.push({k,t:U[k]})});
+  if(!ms.length){toast('書き出す短縮を選んでください');return}
+  const pk={kind:'nemi-pack',v:1,name:($('nmPkName').value||'ネミ語パック').trim().slice(0,30),at:new Date().toISOString().slice(0,10),macros:ms};
+  const txt=JSON.stringify(pk,null,1);NMPKTXT=txt;
+  $('nmPkOut').innerHTML='<textarea rows="6" readonly style="font-family:ui-monospace,Menlo,monospace;font-size:12px">'+esc(txt)+'</textarea><div class="row"><button class="pri sm" id="nmPkCopy">コピー</button></div><div class="dim">'+ms.length+'件。秘密語の表（本名とコードの対応）は、含まれていません。</div>'}
+let NMPKTXT='';
+function nmPkCheck(){
+  const o=$('nmPkI'),raw=$('nmPkIn').value.trim();NMPK=null;
+  if(!raw){o.innerHTML='';return}
+  if(raw.length>60000){o.innerHTML='<div class="card err">大きすぎます（6万字まで）。</div>';return}
+  let pk;try{pk=JSON.parse(raw)}catch(_){o.innerHTML='<div class="card err">JSON として読めません。コピーし直してください。</div>';return}
+  if(!pk||pk.kind!=='nemi-pack'||!Array.isArray(pk.macros)){o.innerHTML='<div class="card err">ネミ語のパックではありません。</div>';return}
+  const U=nmUser(),D=NM_DEF,items=[];let bad=0;
+  pk.macros.slice(0,60).forEach(m=>{
+    const k=nmNorm(m&&m.k),t=String((m&&m.t)||'').trim();
+    if(!k||k.length%2||k.length>12||!t||t.length>500){bad++;return}
+    const f=nmFlags(t,false);if(D[k]!=null)f.push('標準の短縮を上書き');else if(U[k]!=null)f.push('自分の登録を上書き');
+    items.push({k,t,f,ok:!f.length})});
+  NMPK=items;
+  o.innerHTML='<div class="dim">パック名：'+esc(String(pk.name||'').slice(0,30))+'（'+esc(String(pk.at||'').slice(0,10))+'）。'+items.length+'件'+(bad?'・読めない項目 '+bad+' 件は除外':'')+'。<b>展開される文は、あなたのAIに送られます。中身を読んでから選んでください。</b></div>'+
+    items.map((x,i)=>'<div class="src"><label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" data-ik="'+i+'"'+(x.ok?' checked':'')+'><span><b style="font-family:ui-monospace,Menlo,monospace">'+esc(nmKeyShow(x.k))+'</b><div class="dim">'+esc(x.t)+'</div>'+(x.f.length?'<div style="color:#ffb86b;font-size:12px">⚠ '+esc(x.f.join(' / '))+'（初期状態で外してあります）</div>':'')+'</span></label></div>').join('')+
+    (items.length?'<div class="row"><button class="pri sm" id="nmPkImp">選んだ短縮を取り込む</button></div>':'')}
+function nmPkImport(){
+  if(!NMPK)return;const U=nmUser();let n=0;
+  document.querySelectorAll('#nmPkI input[data-ik]:checked').forEach(c=>{const x=NMPK[+c.dataset.ik];if(x){U[x.k]=x.t;n++}});
+  if(!n){toast('取り込む短縮が選ばれていません');return}
+  lsSet(NM_MK,JSON.stringify(U));nmPaintLists();$('nmPkI').innerHTML='<div class="dim">'+n+'件を「自分」の短縮に取り込みました。</div>';$('nmPkIn').value='';NMPK=null;toast('取り込みました（'+n+'件）')}
+$('nmBox').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.id==='nmPkList')return nmPkExpList();
+  if(b.id==='nmPkMake')return nmPkMake();
+  if(b.id==='nmPkCopy')return copyText(NMPKTXT);
+  if(b.id==='nmPkChk')return nmPkCheck();
+  if(b.id==='nmPkImp')return nmPkImport()});
 
 // ---- ⌨ ネミ短縮・仮名化（ah-r10）：ネミ語→指示文の展開（効率化）／秘密語→コードに置換して送り、返事は端末内で元に戻す（秘密）
 const NM_MK='ah_nm_macros',NM_SK='ah_nm_secret';
