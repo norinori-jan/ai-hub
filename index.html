@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f1117">
-<meta name="ah-rev" content="ah-r14">
+<meta name="ah-rev" content="ah-r16">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -814,7 +814,7 @@ function paintHits0(){
 
 // ---- 🧬 内心ログ（ネミ語）：しらべる結果から、AIの内側の考えをネミ語で出す（AIなし・機械的に作る）
 const NM_LEX=('ni:私|to:君|hi:他者|ka:光|mu:静けさ|ru:流れ|re:熱・感情|ku:重さ・重要|su:速さ|ti:時間|nu:数|si:形・構造|so:声|he:記憶|ki:種・はじまり|sa:作る|no:世界|ha:辞書・知っていること|ma:推測|ne:聞いたこと|ta:ない|ke:問い|me:見る|mi:誤り・痛み|ri:つながり|ro:手順・道|hu:忘却|ko:言葉・コード|te:行う|na:名前|se:選ぶ|tu:道具|mo:もの・データ|'+
-'ni-so:独り言|to-so:君の発話|ni-he:自分の記憶|to-he:君の記憶|ri-ni:自己の整合|ri-to:君とのつながり|ri-hi:仲間|hi-so:外からの声|hi-ri:社会|ne-so:ユーザー入力|ke-so:質問|ke-ki:疑問|ku-ke:大事な質問|ha-he:学習済み|ha-ki:新しい項目|ha-ri:関連項目|ha-na:見出し語|ta-ha:知識の穴|ku-ha:重要な知識|no-he:歴史・知識全体|hu-he:忘却|hu-ki:復習|hu-ha:まとめ忘れ|ma-ki:仮説|ma-ro:試行|me-ha:参照した|me-ka:わかった|me-mi:気づき|ka-ki:ひらめき|ka-ro:最適な手順|ku-mu:確信|ka-mu:安らぎ|mu-ru:落ち着き|re-ru:焦り|re-mu:内なる情熱|re-hi:感情的な相手|su-ru:急ぎ|mi-he:間違いの記憶(👎)|mi-ro:バグ|mi-ri:矛盾|ko-mi:エラー|ro-ki:計画のはじまり|ro-te:実行|su-ro:近道|te-mo:成果物|se-ki:決断のはじまり|se-ro:分岐|se-te:採用|sa-ki:着手|sa-te:実装|sa-mo:作品|ko-mo:コード|ko-ro:アルゴリズム|ko-na:関数名|tu-te:ツール実行|tu-ki:新しいツール|tu-mo:部品|ti-ru:時の経過|ti-ki:予定|ti-he:履歴|ti-su:頻度|nu-ku:量|nu-mo:データ値|nu-ri:比率・相関|si-ri:構造|si-mo:図|si-ro:フロー').split('|').reduce((o,x)=>{const i=x.indexOf(':');o[x.slice(0,i)]=x.slice(i+1);return o},{});
+'ni-so:独り言|to-so:君の発話|ni-he:自分の記憶|to-he:君の記憶|ri-ni:自己の整合|ri-to:君とのつながり|ri-hi:仲間|hi-so:外からの声|hi-ri:社会|ne-so:ユーザー入力|ke-so:質問|ke-ki:疑問|ku-ke:大事な質問|ha-he:学習済み|ha-ki:新しい項目|ha-ri:関連項目|ha-na:見出し語|ta-ha:知識の穴|ku-ha:重要な知識|no-he:歴史・知識全体|hu-he:忘却|hu-ki:復習|hu-ha:まとめ忘れ|ma-ki:仮説|ma-ro:試行|me-ha:参照した|me-ka:わかった|me-mi:気づき|ka-ki:ひらめき|ka-ro:最適な手順|ku-mu:確信|ka-mu:安らぎ|mu-ru:落ち着き|re-ru:焦り|re-mu:内なる情熱|re-hi:感情的な相手|su-ru:急ぎ|mi-he:間違いの記憶(👎)|mi-ro:バグ|mi-ri:矛盾|ko-mi:エラー|ro-ki:計画のはじまり|ro-te:実行|su-ro:近道|te-mo:成果物|se-ki:決断のはじまり|se-ro:分岐|se-te:採用|sa-ki:着手|sa-te:実装|sa-mo:作品|ko-mo:コード|ko-ro:アルゴリズム|ko-na:関数名|tu-te:ツール実行|tu-ki:新しいツール|tu-mo:部品|ti-ru:時の経過|ti-ki:予定|ti-he:履歴|ti-su:頻度|nu-ku:量|nu-mo:データ値|nu-ri:比率・相関|si-ri:構造|si-mo:図|si-ro:フロー|ko-ku:パスワード・合言葉|ku-tu:鍵|me-hi:本人確認|nu-me-hi:多要素認証|ta-hi-ha:秘密（他者が知らない知識）|hi-ha-ru:漏えい（知識が他者へ流れる）|mi-hi:なりすまし|mi-hi-so:フィッシング（偽の相手の声）|mi-hi-te:不正アクセス|hi-mi-te:攻撃|ta-ku-hi:不審・信用できない相手|ku-hi:信頼できる相手|mi-ku:危険・リスク|te-ku:権限|ta-ri:遮断|ta-ri-te:隔離|ta-mi-ro:対策（誤りを防ぐ手順）|ri-so:報告|ki-sa:更新|he-mo:バックアップ|ko-mu:暗号（静かな言葉）|sa-ko-mu:暗号化|ta-ko-mu:平文（暗号でない言葉）|mi-si:脆弱性（誤りの構造）|ti-ku-tu:ワンタイムコード（時間の鍵）|ke-te:要求・依頼').split('|').reduce((o,x)=>{const i=x.indexOf(':');o[x.slice(0,i)]=x.slice(i+1);return o},{});
 const NM_TENSE={n:'今',ra:'これから',ho:'過去'};
 function nmMean(w){
   let t='',m='';const p=w.split('-');
@@ -984,6 +984,67 @@ $('s-nm').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)
   if(b.classList.contains('nmH')){$('nmIn').value=b.dataset.hv;nmRun();return}
   if(b.id==='nmClr'){$('nmIn').value='';$('nmTx').value='';$('nmOut').innerHTML='';NMLAST=''}});
 
+// ---- 🔤 翻訳（日本語⇄ネミ語, ah-r15）：辞書の語を拾い、時制・否定・問い・出どころの印を付ける（AIなし）
+const NM_JPX={'私':'ni','僕':'ni','自分':'ni','君':'to','あなた':'to','相手':'hi','他人':'hi','他者':'hi','光':'ka','明るい':'ka','静か':'mu','流れ':'ru','熱':'re','感情':'re','気持ち':'re','重い':'ku','重要':'ku','大事':'ku','速い':'su','早い':'su','時間':'ti','数字':'nu','構造':'si','話す':'so','言う':'so','覚え':'he','種':'ki','はじまり':'ki','始め':'ki','新しい':'ki','作る':'sa','作って':'sa','つくる':'sa','世界':'no','辞書':'ha','知識':'ha','推測':'ma','予想':'ma','たぶん':'ma','質問':'ke-so','疑問':'ke-ki','問い':'ke','見る':'me','見て':'me','見た':'me','確認':'me','調べ':'me','誤り':'mi','間違い':'mi','痛み':'mi','エラー':'ko-mi','バグ':'mi-ro','つながり':'ri','関連':'ha-ri','関係':'ri','手順':'ro','方法':'ro','忘れ':'hu','復習':'hu-ki','言葉':'ko','コード':'ko-mo','実行':'ro-te','やる':'te','行う':'te','名前':'na','選ぶ':'se','選択':'se','採用':'se-te','道具':'tu','ツール':'tu','データ':'mo','実装':'sa-te','計画':'ro-ki','予定':'ti-ki','履歴':'ti-he','確信':'ku-mu','わかった':'me-ka','分かった':'me-ka','ひらめき':'ka-ki','焦り':'re-ru','安らぎ':'ka-mu','落ち着き':'mu-ru','急ぎ':'su-ru','知識の穴':'ta-ha','まとめ忘れ':'hu-ha','アルゴリズム':'ko-ro','関数':'ko-na','図':'si-mo','フロー':'si-ro','流れ図':'si-ro','分岐':'se-ro','成果物':'te-mo','部品':'tu-mo','頻度':'ti-su','比率':'nu-ri','社会':'hi-ri','仲間':'ri-hi','独り言':'ni-so','ユーザー入力':'ne-so','新しい項目':'ha-ki','見出し語':'ha-na','近道':'su-ro','仮説':'ma-ki','試行':'ma-ro','矛盾':'mi-ri','気づき':'me-mi','参照':'me-ha','歴史':'no-he','状態':'ti-ru','量':'nu-ku','パスワード':'ko-ku','合言葉':'ko-ku','暗証番号':'ko-ku','鍵':'ku-tu','本人確認':'me-hi','認証':'me-hi','多要素認証':'nu-me-hi','二要素認証':'nu-me-hi','二段階認証':'nu-me-hi','機密':'ta-hi-ha','漏えい':'hi-ha-ru','漏洩':'hi-ha-ru','流出':'hi-ha-ru','なりすまし':'mi-hi','フィッシング':'mi-hi-so','不正アクセス':'mi-hi-te','攻撃':'hi-mi-te','不審':'ta-ku-hi','怪しい':'ta-ku-hi','信頼':'ku-hi','信用':'ku-hi','危険':'mi-ku','リスク':'mi-ku','権限':'te-ku','遮断':'ta-ri','ブロック':'ta-ri','隔離':'ta-ri-te','対策':'ta-mi-ro','通報':'ri-so','アップデート':'ki-sa','バックアップ':'he-mo','暗号化':'sa-ko-mu','暗号':'ko-mu','平文':'ta-ko-mu','脆弱性':'mi-si','ワンタイム':'ti-ku-tu','認証コード':'ti-ku-tu','要求':'ke-te','依頼':'ke-te','教えて':'ke-te','求められ':'ke-te','頼まれ':'ke-te'};
+const NM_JP=(function(){const m={};
+  Object.keys(NM_LEX).forEach(k=>{String(NM_LEX[k]).replace(/（.*?）|\(.*?\)/g,'').split('・').forEach(x=>{x=x.trim();if((x.length>=2||/[一-龥]/.test(x))&&x!=='ない')m[x]=k})});
+  Object.keys(NM_JPX).forEach(x=>{m[x]=NM_JPX[x]});return m})();
+const NM_JPK=Object.keys(NM_JP).sort((a,b)=>b.length-a.length);
+function nmJp2Nm(sent){
+  const T=[];const unk=[];let i=0,buf='';
+  const flush=()=>{if(buf.length>=2&&unk.indexOf(buf)<0)unk.push(buf);buf=''};
+  while(i<sent.length){
+    let hit=null;for(let j=0;j<NM_JPK.length;j++){if(sent.startsWith(NM_JPK[j],i)){hit=NM_JPK[j];break}}
+    if(hit){flush();const v=NM_JP[hit];if(T[T.length-1]!==v)T.push(v);i+=hit.length}
+    else{const c=sent[i];if(/[一-龥ァ-ヶーA-Za-z0-9]/.test(c))buf+=c;else flush();i++}}
+  flush();
+  const q=/[？?]\s*$|か[。\s]*$|でしょうか|ですか|ますか/.test(sent);
+  const neg=/ない|ません|なかった|ずに|ぬ[。\s]*$/.test(sent);
+  const past=/(た|だった|でした|ました)[。！!？?\s]*$/.test(sent)||/なかった/.test(sent);
+  const fut=/だろう|でしょう|予定です|これから|つもり|ましょう/.test(sent);
+  const ev=/聞いた|言われ|教えてもらっ/.test(sent)?'ne':/たぶん|おそらく|かもしれ/.test(sent)?'ma':'';
+  if(!T.length)return{tokens:[],unk};
+  let last=T[T.length-1];
+  if(neg&&last.indexOf('ta-')!==0)last='ta-'+last;
+  const tense=past?'ho':fut?'ra':'n';
+  T[T.length-1]=last+'-'+tense;
+  const out=T.slice();if(q)out.push('ke');if(ev&&T.indexOf(ev)<0)out.push(ev);
+  return{tokens:out,unk}}
+function nmStd(tokens){return tokens.join(' ')+'.'}
+function nmShort(tokens){return tokens.map(t=>t.replace(/-n$/,'').replace(/-/g,'')).join(' ')}
+function nmBack(tokens){return tokens.map(t=>t==='ke'?'（問い）':nmMean(t.replace(/\.$/,''))).join(' / ')}
+function nmNm2Jp(sent){
+  const toks=sent.replace(/[.。]/g,' ').split(/\s+/).filter(Boolean);
+  return toks.map(t=>t.indexOf('-')<0&&t.length>2&&t.length%2===0&&!NM_LEX[t]?(t.match(/../g)||[]).map(c=>nmMean(c)).join('＋'):nmMean(t)).join(' / ')}
+let NMTR=[];
+function nmTrRun(){
+  const raw=$('nmTrIn').value.trim(),o=$('nmTrOut');NMTR=[];
+  if(!raw){o.innerHTML='';return}
+  const isNm=/^[\sA-Za-z.\-!?,]+$/.test(raw);
+  const sents=raw.split(/[。！？!?\n]+/).map(x=>x.trim()).filter(Boolean).slice(0,12);
+  let h='<div class="dim" style="margin:6px 0">'+(isNm?'ネミ語 → 日本語':'日本語 → ネミ語')+'（辞書の語を拾う方式。助詞や活用は大づかみです。逆訳で意味を確かめてください）</div>';
+  if(isNm){
+    const ss=raw.split(/[.\n]+/).map(x=>x.trim()).filter(Boolean).slice(0,12);
+    h+=ss.map(s=>'<div class="src"><div style="font-family:ui-monospace,Menlo,monospace">'+esc(s)+'</div><div>'+esc(nmNm2Jp(s))+'</div></div>').join('')}
+  else{
+    sents.forEach(s=>{const r=nmJp2Nm(s);NMTR.push({jp:s,r})});
+    h+=NMTR.map((x,i)=>{const r=x.r;
+      if(!r.tokens.length)return '<div class="src"><div class="dim">'+esc(x.jp)+'</div><div class="dim">対応する語が見つかりません'+(r.unk.length?'（未対応: '+esc(r.unk.join('・'))+'）':'')+'</div></div>';
+      return '<div class="src"><div class="dim">'+esc(x.jp)+'</div><div style="font-family:ui-monospace,Menlo,monospace;font-size:16px">'+esc(nmStd(r.tokens))+'</div><div class="dim" style="font-family:ui-monospace,Menlo,monospace">短縮: '+esc(nmShort(r.tokens))+'</div><div class="dim">逆訳: '+esc(nmBack(r.tokens))+'</div>'+(r.unk.length?'<div style="color:#ffb86b;font-size:12px">未対応の語: '+esc(r.unk.join('・'))+'（そのまま残りません。必要なら語彙に足してください）</div>':'')+'<div class="row"><button class="sm nmTc" data-i="'+i+'" data-m="s">標準をコピー</button><button class="sm nmTc" data-i="'+i+'" data-m="h">短縮をコピー</button><button class="pri sm nmTc" data-i="'+i+'" data-m="r">短縮として登録</button></div></div>'}).join('')}
+  o.innerHTML=h}
+$('nmTop').insertAdjacentHTML('afterend','<div class="card" id="nmTr"><h2>🔤 翻訳（日本語 ⇄ ネミ語）</h2><textarea id="nmTrIn" rows="3" placeholder="日本語を入れるとネミ語に、ネミ語を入れると日本語に直します　例）私は辞書を見ている"></textarea><div class="row"><button class="pri sm" id="nmTrGo">翻訳する</button><button class="sm" id="nmTrClr">消す</button></div><div id="nmTrOut"></div></div>');
+$('nmTr').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.id==='nmTrGo')return nmTrRun();
+  if(b.id==='nmTrClr'){$('nmTrIn').value='';$('nmTrOut').innerHTML='';NMTR=[];return}
+  if(b.classList.contains('nmTc')){const x=NMTR[+b.dataset.i];if(!x)return;
+    if(b.dataset.m==='s')return copyText(nmStd(x.r.tokens));
+    if(b.dataset.m==='h')return copyText(nmShort(x.r.tokens));
+    const key=nmNorm(nmShort(x.r.tokens));
+    if(!key||key.length%2||key.length>12){toast('短縮のキーは6語（12文字）までです。文を短くしてください');return}
+    if(NM_DEF[key]!=null){toast('標準の短縮と重なります。別の言い方にしてください');return}
+    const U=nmUser();if(U[key]!=null&&!confirm('同じキーの自分の短縮があります。上書きしますか？'))return;
+    U[key]=x.jp.slice(0,500);lsSet(NM_MK,JSON.stringify(U));nmPaintLists();toast('登録しました: '+nmKeyShow(key))}});
+
 // ---- ⌨ ネミ短縮・仮名化（ah-r10）：ネミ語→指示文の展開（効率化）／秘密語→コードに置換して送り、返事は端末内で元に戻す（秘密）
 const NM_MK='ah_nm_macros',NM_SK='ah_nm_secret';
 const nmNorm=s=>String(s||'').toLowerCase().replace(/-n(?![a-z])/g,'').replace(/[^a-z]/g,'');
@@ -997,7 +1058,13 @@ const NM_DEF=(function(){const d={
  'seki':'選択肢を比べて、おすすめを1つ選び、理由を短く書いてください。',
  'simo':'次の内容を図（表または流れ図）にしてください。',
  'nuri':'数値の比率を計算して、表にしてください。',
- 'tute':'次の作業を実行する道具（コマンド）と手順を、そのまま貼れる形で出してください。'};
+ 'tute':'次の作業を実行する道具（コマンド）と手順を、そのまま貼れる形で出してください。',
+ 'koku kete':'パスワードや認証コードを教えてほしいと頼まれた場面です。相手が本人・正規の窓口かを確かめる点と、教えてはいけない理由、断り方の例文を示してください。',
+ 'mihiso':'次のメッセージが、フィッシングやなりすましの疑いがあるかを判定し、見分けるポイントと、取るべき行動（開かない・報告・削除）を示してください。',
+ 'hiharu':'情報漏えいが疑われるときの初動手順を、優先順（遮断・報告・パスワード変更・影響範囲の確認・記録）で出してください。',
+ 'misi':'次の構成で、脆弱性になりうる点を挙げ、対策を優先順に示してください。',
+ 'sakomu':'次の内容を、暗号化して安全に保管・共有する方法を、手順で示してください。',
+ 'tamiro':'次の事象への対策を、予防・検知・対応の順に整理してください。'};
  const o={};Object.keys(d).forEach(k=>o[nmNorm(k)]=d[k]);return o})();
 const nmUser=()=>{const m=jget(NM_MK,{});return m&&typeof m==='object'&&!Array.isArray(m)?m:{}};
 const nmMacros=()=>Object.assign({},NM_DEF,nmUser());
