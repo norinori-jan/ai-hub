@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f1117">
-<meta name="ah-rev" content="ah-r16">
+<meta name="ah-rev" content="ah-r17">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -59,6 +59,29 @@ pre.code{background:#0a0c11;border:1px solid var(--line);border-radius:10px;padd
 .rl{display:flex;gap:8px;align-items:flex-start;border-top:1px solid var(--line);padding:8px 0}.rl span{flex:1;font-size:13.5px}
 .tag.ng{color:#ff9aa9;border-color:#7a2a38}.tag.okk{color:#8fe3b4;border-color:#1f6b52}
 label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
+
+/* 実務ナレッジ画面 */
+.practice-hero{background:linear-gradient(135deg,#17243a,#191d2a);border:1px solid #30415f;border-radius:14px;padding:14px;margin:10px 0}
+.practice-hero strong{font-size:17px}.practice-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:10px}
+.practice-stats div{background:#0d111a;border:1px solid var(--line);border-radius:9px;padding:8px;text-align:center}
+.practice-stats b{display:block;font-size:19px;color:var(--gold)}
+.practice-tools{display:flex;gap:7px;flex-wrap:wrap;margin:8px 0}
+.practice-tools button{font-size:12px;padding:6px 9px;min-height:34px}
+.practice-tools button.active{border-color:var(--ac);color:#a9d0ff;background:#17243a}
+.practice-grid{display:grid;grid-template-columns:1fr;gap:8px}
+.practice-item{display:flex;align-items:flex-start;gap:9px;width:100%;text-align:left;padding:10px;background:#141923;border:1px solid var(--line);border-radius:10px;min-height:0}
+.practice-item .pid{font:600 11px ui-monospace,monospace;color:#9cc4ff;min-width:66px;padding-top:2px}
+.practice-item .pname{font-size:14px;font-weight:650;display:block}
+.practice-item .pdesc{display:block;color:var(--dim);font-size:11px;line-height:1.45;margin-top:2px}
+.practice-item.active{border-color:var(--ac);background:#17243a}
+.practice-detail{border:1px solid #34415a;background:#141a26;border-radius:12px;padding:12px;margin:10px 0}
+.practice-detail h3{font-size:16px;margin:4px 0 8px}
+.practice-detail h4{font-size:13px;color:#a9caff;margin:14px 0 5px}
+.practice-detail ol,.practice-detail ul{padding-left:21px;margin:6px 0}
+.practice-detail li{margin:4px 0;font-size:13px}
+.practice-detail .pblock{white-space:pre-wrap;word-break:break-word;background:#0b0e15;border:1px solid var(--line);border-radius:9px;padding:10px;font-size:12.5px}
+.practice-note{border-left:3px solid var(--gold);padding:7px 9px;background:#211d13;color:#ead9aa;font-size:12px;margin:8px 0}
+@media(min-width:760px){.practice-layout{display:grid;grid-template-columns:minmax(260px,0.85fr) minmax(0,1.4fr);gap:12px;align-items:start}.practice-list{max-height:70vh;overflow:auto}.practice-detail{position:sticky;top:10px}.practice-item{margin-bottom:6px}}
 </style>
 </head>
 <body>
@@ -121,6 +144,39 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
     <textarea id="pasteIn" rows="5" placeholder="② の返事をここに貼る"></textarea>
     <div class="row"><button class="pri sm" id="pasteTake">③ 返事を取り込む</button><button class="sm" id="pasteClr">クリア</button></div>
   </details>
+</section>
+
+
+<section id="s-practice" hidden>
+  <div class="practice-hero">
+    <strong>📊 実務マスター｜索引から仕事の手順まで</strong>
+    <div class="dim" style="margin-top:4px">索引を選ぶ → 意味を理解 → 確認手順を実行 → 障害時の初動 → 報告。まずは毎日60〜90分、手を動かして覚えます。</div>
+    <div class="practice-stats"><div><b id="prCount">—</b><span class="dim">索引項目</span></div><div><b id="prDone">0</b><span class="dim">学習済み</span></div><div><b>30日</b><span class="dim">集中コース</span></div></div>
+  </div>
+  <div class="card">
+    <input id="prSearch" type="search" placeholder="索引番号・用語・困っている症状で検索（例：NW-002 / DNS / ネットにつながらない）">
+    <div class="practice-tools" id="prCats">
+      <button class="active" data-prcat="all">すべて</button><button data-prcat="db">DB</button><button data-prcat="nw">ネットワーク</button><button data-prcat="sv">サーバー</button><button data-prcat="ad">ID・権限</button><button data-prcat="sc">セキュリティ</button><button data-prcat="bk">バックアップ</button><button data-prcat="op">運用</button><button data-prcat="wf">ワークフロー</button>
+    </div>
+    <div class="dim" id="prStatus">教材を読み込んでいます…</div>
+  </div>
+  <div class="practice-layout">
+    <div class="practice-list" id="prList"></div>
+    <div id="prDetail"><div class="card dim">左の索引を押すと、説明・操作の確認手順・障害初動・報告書がここに表示されます。</div></div>
+  </div>
+  <div class="card">
+    <h2>⚡ 30日集中マスター計画</h2>
+    <div class="dim">1日60〜90分。読むだけでなく、説明する・手順を書く・模擬対応することで定着させます。</div>
+    <div id="prStudy">
+      <div class="rl"><span><b>1〜5日目｜基礎を固める</b><br>DB・SQL・IP・DNS・DHCP・サーバーの役割。毎日10用語を自分の言葉で説明。</span></div>
+      <div class="rl"><span><b>6〜10日目｜インフラを切り分ける</b><br>VPN・Firewall・ポート・Windows/Linux・ログ。症状から確認順を口頭で再現。</span></div>
+      <div class="rl"><span><b>11〜15日目｜セキュリティと復旧</b><br>MFA・権限・フィッシング・EDR・バックアップ・RPO/RTO。初動と禁止事項を暗記。</span></div>
+      <div class="rl"><span><b>16〜20日目｜業務ワークフロー</b><br>問合せ・障害・入退社・権限・変更・復元を、受付から完了まで説明。</span></div>
+      <div class="rl"><span><b>21〜25日目｜質問対応と報告</b><br>毎日3問の模擬問合せに回答し、時系列・影響・対応・次の一手を報告書にする。</span></div>
+      <div class="rl"><span><b>26〜30日目｜総合演習</b><br>DNS障害、DB遅延、アカウントロック、不審メール、バックアップ失敗を模擬対応。</span></div>
+    </div>
+    <div class="practice-note">合格目安：各用語を30秒で説明できる／確認順を理由付きで説明できる／危険な操作を避けてエスカレーションできる／5分で簡潔な報告を書ける。</div>
+  </div>
 </section>
 
 <section id="s-know" hidden>
@@ -188,6 +244,7 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
 
 <nav id="nav">
   <button data-t="ask" class="on"><span>💬</span>聞く</button>
+  <button data-t="practice"><span>📊</span>実務</button>
   <button data-t="nm"><span>⌨</span>ネミ</button>
   <button data-t="know"><span>📚</span>知識</button>
   <button data-t="plan"><span>🧭</span>整理</button>
@@ -1273,7 +1330,7 @@ function saveCfg(){
 // ---- イベント
 $('nav').addEventListener('click',e=>{const b=e.target.closest('button[data-t]');if(!b)return;
   document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b));
-  ['ask','nm','know','plan','grow','set'].forEach(t=>{$('s-'+t).hidden=t!==b.dataset.t});if(b.dataset.t==='nm')nmPaintTop();
+  ['ask','practice','nm','know','plan','grow','set'].forEach(t=>{$('s-'+t).hidden=t!==b.dataset.t});if(b.dataset.t==='nm')nmPaintTop();
   if(b.dataset.t==='plan')paintPlan();
   if(b.dataset.t==='set')paintCfg();if(b.dataset.t==='know')paintKnow();if(b.dataset.t==='grow')paintGrow();window.scrollTo(0,0)});
 $('askBtn').addEventListener('click',()=>doAsk(false));
@@ -1437,7 +1494,64 @@ document.addEventListener('click',e=>{
   if(t.dataset.gaps){const a=gapSkip();a.push(t.dataset.gaps);lsSet('ah_gapskip',JSON.stringify(a.slice(-500)));paintGap();return}
   if(t.dataset.gask){const g=GAP.find(x=>x.id===t.dataset.gask);if(g){$('q').value=g.q;document.querySelector('nav button[data-t=ask]').click()}return}
 });
-paintUsage();paintHead();paintKnow();paintGrow();
+
+/* ---- 実務マスター：同梱の索引パックを読み、項目を押すだけで実務ガイドを表示 */
+let PRACTICE=[],prCat='all',prSelected='',prDone=(()=>{try{return JSON.parse(localStorage.getItem('ah_practice_done_v1')||'{}')}catch(_){return {}}})();
+const prEsc=esc;
+function prKindLabel(k){return ({db:'データベース',nw:'ネットワーク',sv:'サーバー',ad:'ID・権限',sc:'セキュリティ',bk:'バックアップ',op:'運用',wf:'ワークフロー'})[k]||k.toUpperCase()}
+function prLoadCache(){try{const p=JSON.parse(localStorage.getItem('ah_practice_pack_v1')||'null');if(p&&Array.isArray(p.entries))PRACTICE=p.entries}catch(_){}}
+async function prLoad(){
+  prLoadCache();prPaint();
+  try{const r=await fetch('knowledge-packs/it-operations.json',{cache:'no-cache'});if(!r.ok)throw new Error('HTTP '+r.status);const p=await r.json();if(!p||!Array.isArray(p.entries))throw new Error('辞書形式が違います');PRACTICE=p.entries;try{localStorage.setItem('ah_practice_pack_v1',JSON.stringify(p))}catch(_){}}
+  catch(e){if(!PRACTICE.length)$('prStatus').textContent='教材を読み込めません：'+e.message+'。GitHub Pagesで公開後に再読み込みしてください。'}
+  prPaint();if(!prSelected&&PRACTICE.length)prSelect(PRACTICE[0].id);
+}
+function prPaint(){
+  if(!$('prList'))return;
+  const q=($('prSearch').value||'').trim().toLowerCase();
+  const L=PRACTICE.filter(x=>(prCat==='all'||x.kind===prCat)&&(!q||(x.id+' '+x.term+' '+x.summary+' '+(x.tags||[]).join(' ')).toLowerCase().includes(q)));
+  $('prCount').textContent=PRACTICE.length;$('prDone').textContent=Object.keys(prDone).filter(k=>prDone[k]).length;
+  $('prStatus').textContent=L.length+'件を表示中'+(PRACTICE.length?' ／ 索引番号を押して詳細を表示':'');
+  $('prList').innerHTML=L.length?L.map(x=>'<button class="practice-item '+(x.id===prSelected?'active':'')+'" data-prselect="'+prEsc(x.id)+'"><span class="pid">'+prEsc(x.id)+'</span><span><span class="pname">'+(prDone[x.id]?'✓ ':'')+prEsc(x.term)+'</span><span class="pdesc">'+prEsc(x.summary||'')+'</span></span></button>').join(''):'<div class="card dim">該当する索引がありません。</div>';
+}
+function prWorkflow(x){
+ const k=x.kind,id=x.id;
+ if(k==='wf')return (x.form||'受付 → 内容確認 → 対応 → 結果確認 → 記録').split(/[→＞]/).map(v=>v.trim()).filter(Boolean);
+ if(k==='sc')return ['検知内容・発生時刻・対象端末を記録する','影響範囲と情報漏えい・不正アクセスの可能性を確認する','社内のセキュリティ窓口・責任者へ速やかに報告する','指示に従って隔離・封じ込めを行い、証拠とログを保全する','復旧可否は責任者の判断を受け、再発防止策を記録する'];
+ if(k==='bk')return ['対象データ・バックアップ世代・取得時刻を確認する','成功ログだけでなく復元可能性・復元テスト結果を確認する','復元依頼の対象・時点・復元先・承認者を確認する','本番上書きの影響とロールバック方法を確認する','承認された手順で復元し、整合性と業務確認を記録する'];
+ if(k==='db')return ['接続先（本番/検証）と対象DB・テーブルを特定する','エラー時刻・対象SQL・影響件数・再現条件を確認する','SELECT・実行計画・ログなど読み取り中心で状況を把握する','更新・削除・INDEX変更は承認とバックアップを確認してから行う','結果・件数・性能・関連アプリへの影響を確認し記録する'];
+ if(k==='nw')return ['影響範囲を確認（1台／部署／拠点／全社）する','有線/無線・社内/社外・特定アプリだけかを分ける','IP・ゲートウェイ・DNS・VPN・ポートの順に確認する','Firewallやネットワーク設定変更はログと承認を確認する','復旧後に名前解決・疎通・対象業務を確認して記録する'];
+ if(k==='sv')return ['対象サーバー・サービス・環境（本番/検証）を特定する','CPU・メモリ・ディスク・サービス状態を確認する','発生時刻前後のイベントログ・アプリログを保全する','再起動・設定変更・ファイル削除は影響と承認を確認する','サービス応答・監視アラート・利用者影響を確認する'];
+ if(k==='ad')return ['本人・所属・対象ID・申請内容を確認する（パスワードは聞かない）','認証エラー・ロック状態・MFA・端末条件を確認する','必要な権限と承認者を確認し最小権限で対応する','付与・解除の対象、時刻、期限を記録する','本人または依頼元に利用確認を依頼し完了を記録する'];
+ return ['対象・利用者・発生時刻・エラー内容を確認する','影響範囲と緊急度を判断する','関連するログ・設定・直近の変更を確認する','承認済みの手順で対応し、危険な変更は避ける','復旧確認・利用者連絡・対応記録を行う'];
+}
+function prDetailHtml(x){
+ const steps=prWorkflow(x),parts=(x.parts||[]).map(p=>typeof p==='string'?p:p.name).filter(Boolean);
+ const related=(x.related||[]).map(id=>PRACTICE.find(z=>z.id===id)).filter(Boolean);
+ const report='【件名】'+x.term+' に関する問合せ／障害\n【発生日時】YYYY/MM/DD HH:MM\n【対象】システム・端末・利用者（必要最小限）\n【事象】確認できた事実を記載\n【影響範囲】確認済み／未確認を分けて記載\n【時系列】\nHH:MM 検知・受付：\nHH:MM 確認したこと：\nHH:MM 実施した対応：\n【原因】確定／調査中（推測を断定しない）\n【現在の状態】復旧／回避策あり／対応中\n【次の対応】担当・期限・確認事項\n【証跡】チケット番号・ログの保存先（秘密情報は貼らない）';
+ return '<div class="practice-detail"><div class="dim">'+prEsc(prKindLabel(x.kind))+' ／ '+prEsc(x.id)+'</div><h3>'+prEsc(x.term)+'</h3><div>'+prEsc(x.summary||'')+'</div>'+
+ '<h4>① まず理解する</h4><div class="pblock">'+prEsc(x.form||x.summary||'')+'</div>'+
+ '<h4>② 用語・構成要素</h4><ul>'+parts.map(p=>'<li>'+prEsc(p)+'</li>').join('')+'</ul>'+
+ '<h4>③ 実務での確認・操作手順</h4><ol>'+steps.map(p=>'<li>'+prEsc(p)+'</li>').join('')+'</ol>'+
+ '<div class="practice-note">安全ルール：本番環境の更新・削除・再起動・権限変更・Firewall変更・端末初期化は、承認と影響確認なしに実行しない。判断できない場合は、確認済み事実を添えてエスカレーション。</div>'+
+ '<h4>④ よくある質問への回答例</h4><div class="pblock">「'+prEsc(x.term)+'とは、'+prEsc(x.summary||'')+'」\n\n確認するときは、まず対象・環境・発生時刻を特定し、'+prEsc(steps[0]||'関連情報を確認')+'。原因が未確定の場合は断定せず、確認できた内容と次の対応をお伝えします。</div>'+
+ '<h4>⑤ 障害時の初動</h4><ol><li>発生時刻・対象・エラー文を記録する。</li><li>影響範囲（何人・何台・どの業務）を確認する。</li><li>直近の変更・関連アラート・ログを確認し、証拠を保全する。</li><li>重大な影響やセキュリティ疑いは、初動段階で責任者へ連絡する。</li><li>承認された復旧手順で対応し、復旧後に利用者確認を行う。</li></ol>'+
+ '<h4>⑥ 報告書テンプレート</h4><div class="pblock" id="prReportText">'+prEsc(report)+'</div><div class="row"><button class="sm pri" data-prreport="'+prEsc(x.id)+'">報告書をコピー</button><button class="sm" data-prdone="'+prEsc(x.id)+'">'+(prDone[x.id]?'学習済みを解除':'学習済みにする')+'</button><button class="sm" data-prask="'+prEsc(x.id)+'">この項目を質問画面で調べる</button></div>'+
+ (related.length?'<h4>⑦ 関連索引</h4><div class="practice-tools">'+related.map(z=>'<button data-prselect="'+prEsc(z.id)+'">'+prEsc(z.id)+' '+prEsc(z.term)+'</button>').join('')+'</div>':'')+
+ '<h4>理解度チェック</h4><ul><li>この用語を30秒で自分の言葉で説明できる。</li><li>確認手順を順番どおりに説明できる。</li><li>やってはいけない操作と報告先を説明できる。</li></ul></div>';
+}
+function prSelect(id){const x=PRACTICE.find(z=>z.id===id);if(!x)return;prSelected=id;prPaint();$('prDetail').innerHTML=prDetailHtml(x);if(window.innerWidth<760)$('prDetail').scrollIntoView({behavior:'smooth',block:'start'})}
+$('prSearch').addEventListener('input',prPaint);
+$('prCats').addEventListener('click',e=>{const b=e.target.closest('[data-prcat]');if(!b)return;prCat=b.dataset.prcat;$('prCats').querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b));prPaint()});
+document.addEventListener('click',e=>{
+ const b=e.target.closest('[data-prselect],[data-prdone],[data-prreport],[data-prask]');if(!b)return;
+ if(b.dataset.prselect){prSelect(b.dataset.prselect);return}
+ if(b.dataset.prdone){const id=b.dataset.prdone;prDone[id]=!prDone[id];try{localStorage.setItem('ah_practice_done_v1',JSON.stringify(prDone))}catch(_){}prSelect(id);return}
+ if(b.dataset.prreport){const x=PRACTICE.find(z=>z.id===b.dataset.prreport);if(x){const el=document.createElement('textarea');el.value=$('prReportText').textContent;document.body.appendChild(el);el.select();try{document.execCommand('copy');toast('報告書テンプレートをコピーしました')}catch(_){prompt('コピーしてください',el.value)}el.remove()}return}
+ if(b.dataset.prask){const x=PRACTICE.find(z=>z.id===b.dataset.prask);if(x){$('q').value=x.term+'について、意味・確認手順・障害時の初動・注意点を教えて';document.querySelector('nav button[data-t=ask]').click();$('q').focus()}return}
+});
+
+paintUsage();paintHead();paintKnow();paintGrow();prLoad();
 (async()=>{const pk=await idbGet('pack');if(pk)setPack(pk);paintPack();paintHead();paintHits();const c=await idbGet('feed');if(c&&Array.isArray(c.docs)&&c.docs.length){FEED={docs:c.docs,stat:c.stat||{kd:0,qr:0},err:{}};loaded=true;paintHead();paintKnow();paintGrow();paintHits()}
   if(A.config().endpoint&&A.config().token)loadFeed();else if(!(c&&c.docs&&c.docs.length)){$('hb').textContent='未接続';$('hb').className='badge ng';LAST=Object.assign({},{error:'まず ⚙️ で接続を入れてください。iPhoneのホーム画面アプリは、辞書・メモとは設定が別なので、この画面に1回だけ入れます。'});renderAns()}
 })();
