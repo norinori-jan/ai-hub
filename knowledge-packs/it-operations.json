@@ -1,0 +1,3147 @@
+{
+  "schemaVersion": 1,
+  "packId": "ai-hub-it-operations-ja-v1",
+  "title": "社内IT実務ナレッジ（DB・NW・サーバー・AD・セキュリティ・運用）",
+  "description": "AI-HUBの辞書パック形式。索引付き用語・実務確認・例・関連索引を収録。初期学習用の一般知識であり、社内固有手順ではありません。",
+  "lang": "ja",
+  "builtAt": "2026-11-25",
+  "entries": [
+    {
+      "id": "DB-001",
+      "term": "データベース",
+      "lang": "ja",
+      "kind": "db",
+      "tags": [
+        "DB",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "データを整理して保存・検索・更新する仕組み。業務システムの情報を一元管理する。",
+      "form": "DBはデータを管理する仕組み。テーブルは表、行はレコード、列は項目。",
+      "parts": [
+        {
+          "name": "データベース"
+        },
+        {
+          "name": "テーブル"
+        },
+        {
+          "name": "レコード"
+        },
+        {
+          "name": "カラム"
+        }
+      ],
+      "example": "社員情報を社員テーブルに保存し、社員IDで検索する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "DB-002",
+        "DB-003",
+        "DB-005"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "DB-002",
+      "term": "テーブル・行・列",
+      "lang": "ja",
+      "kind": "db",
+      "tags": [
+        "DB",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "テーブルは表、行は1件のデータ、列はデータ項目。",
+      "form": "表構造を確認し、項目名・型・NULL可否・制約を把握する。",
+      "parts": [
+        {
+          "name": "テーブル=表"
+        },
+        {
+          "name": "行=レコード"
+        },
+        {
+          "name": "列=カラム"
+        }
+      ],
+      "example": "usersテーブルのid列、name列に社員情報を格納する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "DB-001",
+        "DB-003"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "DB-003",
+      "term": "主キー（PK）",
+      "lang": "ja",
+      "kind": "db",
+      "tags": [
+        "DB",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "テーブル内の各行を一意に識別するキー。重複やNULLを許さない設計が基本。",
+      "form": "主キー列、複合主キーか、採番方法、参照関係を確認する。",
+      "parts": [
+        {
+          "name": "Primary Key"
+        },
+        {
+          "name": "一意"
+        },
+        {
+          "name": "NULL不可"
+        }
+      ],
+      "example": "user_idを主キーにしてユーザーを識別する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "DB-002",
+        "DB-004"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "DB-004",
+      "term": "外部キー（FK）",
+      "lang": "ja",
+      "kind": "db",
+      "tags": [
+        "DB",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "別テーブルの主キー等を参照し、テーブル間の整合性を保つ制約。",
+      "form": "参照先、削除・更新時の制約、孤児データの有無を確認する。",
+      "parts": [
+        {
+          "name": "Foreign Key"
+        },
+        {
+          "name": "参照整合性"
+        }
+      ],
+      "example": "orders.user_idがusers.idを参照する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "DB-003",
+        "DB-007"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "DB-005",
+      "term": "SQL SELECT",
+      "lang": "ja",
+      "kind": "db",
+      "tags": [
+        "DB",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "データベースから必要なデータを検索するSQL文。",
+      "form": "接続先環境、対象テーブル、WHERE条件、取得件数、機密項目を確認する。",
+      "parts": [
+        {
+          "name": "SELECT"
+        },
+        {
+          "name": "FROM"
+        },
+        {
+          "name": "WHERE"
+        },
+        {
+          "name": "ORDER BY"
+        }
+      ],
+      "example": "SELECT id,name FROM users WHERE id=1;（学習用）",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "DB-001",
+        "DB-007"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "DB-006",
+      "term": "INSERT・UPDATE・DELETE",
+      "lang": "ja",
+      "kind": "db",
+      "tags": [
+        "DB",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "データの追加・更新・削除を行うSQL文。誤操作時の影響が大きい。",
+      "form": "本番か検証か、承認、対象件数、WHERE条件、バックアップ、戻し方を確認する。",
+      "parts": [
+        {
+          "name": "INSERT追加"
+        },
+        {
+          "name": "UPDATE更新"
+        },
+        {
+          "name": "DELETE削除"
+        }
+      ],
+      "example": "変更前に同じWHERE条件でSELECTし対象件数を確認する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "DB-005",
+        "DB-010"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "DB-007",
+      "term": "JOIN",
+      "lang": "ja",
+      "kind": "db",
+      "tags": [
+        "DB",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "複数テーブルを関連する列で結合して検索するSQL機能。",
+      "form": "結合キー、INNER/LEFTの違い、結合後の件数、重複を確認する。",
+      "parts": [
+        {
+          "name": "INNER JOIN"
+        },
+        {
+          "name": "LEFT JOIN"
+        },
+        {
+          "name": "ON"
+        }
+      ],
+      "example": "社員と部署をdepartment_idで結合する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "DB-002",
+        "DB-004",
+        "DB-005"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "DB-008",
+      "term": "INDEX",
+      "lang": "ja",
+      "kind": "db",
+      "tags": [
+        "DB",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "検索対象を効率よく見つけるためのDB構造。検索を速める場合があるが更新負荷・容量が増える。",
+      "form": "遅いSQL、実行計画、既存INDEX、更新頻度、容量をDB担当と確認する。",
+      "parts": [
+        {
+          "name": "インデックス"
+        },
+        {
+          "name": "実行計画"
+        },
+        {
+          "name": "性能"
+        }
+      ],
+      "example": "検索条件の列に適切なINDEXがあるか実行計画で確認する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "DB-005",
+        "DB-011"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "DB-009",
+      "term": "VIEW",
+      "lang": "ja",
+      "kind": "db",
+      "tags": [
+        "DB",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "SELECT文を保存し、仮想的な表として扱う仕組み。",
+      "form": "定義SQL、参照元テーブル、権限、性能を確認する。",
+      "parts": [
+        {
+          "name": "ビュー"
+        },
+        {
+          "name": "仮想テーブル"
+        }
+      ],
+      "example": "部署別社員一覧をVIEWとして提供する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "DB-005",
+        "DB-007"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "DB-010",
+      "term": "トランザクション",
+      "lang": "ja",
+      "kind": "db",
+      "tags": [
+        "DB",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "複数のDB操作をひとまとまりとして扱い、整合性を守る仕組み。",
+      "form": "開始、COMMIT/ROLLBACK、処理範囲、タイムアウトを確認する。",
+      "parts": [
+        {
+          "name": "ACID"
+        },
+        {
+          "name": "COMMIT"
+        },
+        {
+          "name": "ROLLBACK"
+        }
+      ],
+      "example": "一連の更新が成功した場合にCOMMITし、失敗時は設計に従いROLLBACKする。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "DB-006",
+        "DB-011"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "DB-011",
+      "term": "ロック・デッドロック",
+      "lang": "ja",
+      "kind": "db",
+      "tags": [
+        "DB",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "同時実行による競合を防ぐロックと、互いの解除待ちで進まなくなるデッドロック。",
+      "form": "発生時刻、待機セッション、対象SQL、ログ、直前変更を確認する。",
+      "parts": [
+        {
+          "name": "Lock"
+        },
+        {
+          "name": "Deadlock"
+        },
+        {
+          "name": "wait"
+        }
+      ],
+      "example": "アプリ応答遅延時にDBのロック待ち情報を担当者と確認する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "DB-008",
+        "DB-010"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "DB-012",
+      "term": "DBバックアップ",
+      "lang": "ja",
+      "kind": "db",
+      "tags": [
+        "DB",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "データベースを障害・誤操作から復旧するための複製。",
+      "form": "対象DB、取得時刻、成功ログ、保管世代、復元テストを確認する。",
+      "parts": [
+        {
+          "name": "Full"
+        },
+        {
+          "name": "Incremental"
+        },
+        {
+          "name": "Restore"
+        }
+      ],
+      "example": "バックアップ成功ログだけでなく定期的な復元テスト結果を確認する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "BK-001",
+        "BK-004",
+        "BK-008"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "NW-001",
+      "term": "IPアドレス",
+      "lang": "ja",
+      "kind": "nw",
+      "tags": [
+        "NW",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "ネットワーク上で機器やインターフェースを識別する番号。",
+      "form": "IP、サブネットマスク、重複、DHCP/固定設定を確認する。",
+      "parts": [
+        {
+          "name": "IPv4"
+        },
+        {
+          "name": "IPv6"
+        },
+        {
+          "name": "Subnet"
+        }
+      ],
+      "example": "端末のIP設定を確認して同一ネットワークか調べる。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "NW-003",
+        "NW-004"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "NW-002",
+      "term": "DNS",
+      "lang": "ja",
+      "kind": "nw",
+      "tags": [
+        "NW",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "ドメイン名やホスト名をIPアドレスに対応付ける仕組み。",
+      "form": "対象名、DNSサーバー、名前解決結果、端末/拠点差、キャッシュを確認する。",
+      "parts": [
+        {
+          "name": "Domain Name System"
+        },
+        {
+          "name": "名前解決"
+        }
+      ],
+      "example": "IP直打ちでは接続できるが名前では不可の場合、DNSを確認する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "NW-001",
+        "NW-012"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "NW-003",
+      "term": "DHCP",
+      "lang": "ja",
+      "kind": "nw",
+      "tags": [
+        "NW",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "端末にIPアドレス、ゲートウェイ、DNSなどを自動配布する仕組み。",
+      "form": "リース状態、スコープ残数、VLAN、DHCPリレー、予約を確認する。",
+      "parts": [
+        {
+          "name": "Dynamic Host Configuration Protocol"
+        }
+      ],
+      "example": "複数端末でIPを取得できない場合、DHCPスコープを確認する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "NW-001",
+        "NW-006"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "NW-004",
+      "term": "デフォルトゲートウェイ",
+      "lang": "ja",
+      "kind": "nw",
+      "tags": [
+        "NW",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "端末が別ネットワークへ通信する際に利用する出口。",
+      "form": "端末のGW設定、経路、GWの稼働、セグメントを確認する。",
+      "parts": [
+        {
+          "name": "Default Gateway"
+        },
+        {
+          "name": "Route"
+        }
+      ],
+      "example": "同一LAN内は通信できるが社外へ出られない場合に確認する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "NW-001",
+        "NW-005"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "NW-005",
+      "term": "LAN・WAN",
+      "lang": "ja",
+      "kind": "nw",
+      "tags": [
+        "NW",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "LANは限定された範囲のネットワーク、WANは拠点間など広域のネットワーク。",
+      "form": "対象拠点、回線状態、経路、障害範囲を確認する。",
+      "parts": [
+        {
+          "name": "Local Area Network"
+        },
+        {
+          "name": "Wide Area Network"
+        }
+      ],
+      "example": "本社のみか複数拠点かで切り分ける。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "NW-006",
+        "NW-007"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "NW-006",
+      "term": "VLAN",
+      "lang": "ja",
+      "kind": "nw",
+      "tags": [
+        "NW",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "物理ネットワークを論理的に分割する仕組み。",
+      "form": "VLAN ID、スイッチポート、タグ設定、ルーティングを確認する。",
+      "parts": [
+        {
+          "name": "Virtual LAN"
+        },
+        {
+          "name": "Access"
+        },
+        {
+          "name": "Trunk"
+        }
+      ],
+      "example": "特定部署の端末だけ通信できない場合に所属VLANを確認する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "NW-001",
+        "NW-003",
+        "NW-005"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "NW-007",
+      "term": "VPN",
+      "lang": "ja",
+      "kind": "nw",
+      "tags": [
+        "NW",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "認証や暗号化を用いて離れたネットワークへ安全に接続する技術。",
+      "form": "利用者、端末条件、MFA、接続状態、経路、証明書、障害範囲を確認する。",
+      "parts": [
+        {
+          "name": "Virtual Private Network"
+        },
+        {
+          "name": "Tunnel"
+        }
+      ],
+      "example": "在宅勤務者のみ社内システムへ接続できない場合に確認する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "AD-005",
+        "NW-008"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "NW-008",
+      "term": "Firewall",
+      "lang": "ja",
+      "kind": "nw",
+      "tags": [
+        "NW",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "通信ルールに基づきネットワーク接続を許可または拒否する仕組み。",
+      "form": "送信元/宛先、プロトコル、ポート、方向、ルール順序、ログを確認する。",
+      "parts": [
+        {
+          "name": "FW"
+        },
+        {
+          "name": "Allow"
+        },
+        {
+          "name": "Deny"
+        },
+        {
+          "name": "Rule"
+        }
+      ],
+      "example": "通信不可時は対象通信のFWログを確認し、変更は承認後に行う。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "NW-010",
+        "SC-001"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "NW-009",
+      "term": "TCP・UDP",
+      "lang": "ja",
+      "kind": "nw",
+      "tags": [
+        "NW",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "TCPは接続確立と再送制御を持ち、UDPは軽量な通信方式。",
+      "form": "対象アプリが利用するプロトコル、ポート、経路を確認する。",
+      "parts": [
+        {
+          "name": "Transmission Control Protocol"
+        },
+        {
+          "name": "User Datagram Protocol"
+        }
+      ],
+      "example": "ポート番号だけでなくTCP/UDPのどちらかを確認する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "NW-010",
+        "NW-008"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "NW-010",
+      "term": "ポート番号",
+      "lang": "ja",
+      "kind": "nw",
+      "tags": [
+        "NW",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "端末上の通信サービスを識別する番号。",
+      "form": "接続先ホスト、ポート、TCP/UDP、サービス稼働、FWルールを確認する。",
+      "parts": [
+        {
+          "name": "22 SSH"
+        },
+        {
+          "name": "53 DNS"
+        },
+        {
+          "name": "80 HTTP"
+        },
+        {
+          "name": "443 HTTPS"
+        }
+      ],
+      "example": "DB接続障害時はDB製品の待受ポートとFW経路を確認する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "NW-008",
+        "NW-009"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "NW-011",
+      "term": "Proxy",
+      "lang": "ja",
+      "kind": "nw",
+      "tags": [
+        "NW",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "クライアントと外部サーバーの間で通信を中継する仕組み。",
+      "form": "プロキシ設定、PAC、認証、許可ルール、ログを確認する。",
+      "parts": [
+        {
+          "name": "Forward Proxy"
+        },
+        {
+          "name": "PAC"
+        }
+      ],
+      "example": "Webサイトだけ開けない場合、Proxy設定や認証を確認する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "NW-008",
+        "SC-010"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "NW-012",
+      "term": "NTP",
+      "lang": "ja",
+      "kind": "nw",
+      "tags": [
+        "NW",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "ネットワーク経由で機器の時刻を同期する仕組み。",
+      "form": "時刻差、タイムゾーン、同期先、同期状態を確認する。",
+      "parts": [
+        {
+          "name": "Network Time Protocol"
+        },
+        {
+          "name": "Clock Sync"
+        }
+      ],
+      "example": "ログの時刻がずれる場合、NTP同期を確認する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "SV-008",
+        "SC-009"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "SV-001",
+      "term": "サーバー",
+      "lang": "ja",
+      "kind": "sv",
+      "tags": [
+        "SV",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "アプリケーション、ファイル、DBなどのサービスを提供するコンピューター/環境。",
+      "form": "役割、環境、本番/検証、所有者、稼働状態、依存関係を確認する。",
+      "parts": [
+        {
+          "name": "Server"
+        },
+        {
+          "name": "Service"
+        },
+        {
+          "name": "Host"
+        }
+      ],
+      "example": "障害受付時に対象サーバーと提供サービスを特定する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "SV-007",
+        "SV-008"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "SV-002",
+      "term": "Windows Server",
+      "lang": "ja",
+      "kind": "sv",
+      "tags": [
+        "SV",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "Microsoftのサーバー向けOS。",
+      "form": "サービス状態、イベントログ、リソース、更新履歴を確認する。",
+      "parts": [
+        {
+          "name": "Services"
+        },
+        {
+          "name": "Event Viewer"
+        },
+        {
+          "name": "Windows Update"
+        }
+      ],
+      "example": "サービス停止時はイベントログと変更履歴を確認する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "SV-007",
+        "SV-008",
+        "AD-001"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "SV-003",
+      "term": "Linux",
+      "lang": "ja",
+      "kind": "sv",
+      "tags": [
+        "SV",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "サーバーで広く利用されるOS群。",
+      "form": "サービス、journal、ディスク、メモリ、権限、直近変更を確認する。",
+      "parts": [
+        {
+          "name": "systemd"
+        },
+        {
+          "name": "journal"
+        },
+        {
+          "name": "filesystem"
+        }
+      ],
+      "example": "障害調査ではログとサービス状態を読み取り中心で確認する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "SV-007",
+        "SV-008"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "SV-004",
+      "term": "仮想化",
+      "lang": "ja",
+      "kind": "sv",
+      "tags": [
+        "SV",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "物理サーバー上で複数の仮想マシン等を動かす技術。",
+      "form": "ホスト、VM、CPU/メモリ、データストア、スナップショットを確認する。",
+      "parts": [
+        {
+          "name": "Hypervisor"
+        },
+        {
+          "name": "VM"
+        },
+        {
+          "name": "Resource Pool"
+        }
+      ],
+      "example": "複数VM同時障害なら仮想化ホストや共有ストレージも確認する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "SV-005",
+        "SV-006"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "SV-005",
+      "term": "コンテナ",
+      "lang": "ja",
+      "kind": "sv",
+      "tags": [
+        "SV",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "アプリと依存関係を分離して実行する仕組み。",
+      "form": "イメージ、設定、環境変数、ログ、永続ボリュームを確認する。",
+      "parts": [
+        {
+          "name": "Container"
+        },
+        {
+          "name": "Image"
+        },
+        {
+          "name": "Volume"
+        }
+      ],
+      "example": "コンテナ再作成で永続データが失われないか事前確認する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "SV-004",
+        "SV-008"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "SV-006",
+      "term": "ストレージ",
+      "lang": "ja",
+      "kind": "sv",
+      "tags": [
+        "SV",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "データやファイルを保存する領域/装置。",
+      "form": "空き容量、使用率推移、IO遅延、冗長性、拡張計画を確認する。",
+      "parts": [
+        {
+          "name": "容量"
+        },
+        {
+          "name": "IOPS"
+        },
+        {
+          "name": "Latency"
+        },
+        {
+          "name": "RAID"
+        }
+      ],
+      "example": "容量不足時は増加元を特定し、ファイル削除は承認を得る。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "BK-001",
+        "OP-006"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "SV-007",
+      "term": "監視",
+      "lang": "ja",
+      "kind": "sv",
+      "tags": [
+        "SV",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "サーバーやサービスの状態を継続的に測定し異常を通知する運用。",
+      "form": "CPU、メモリ、ディスク、サービス、応答時間、アラート閾値を確認する。",
+      "parts": [
+        {
+          "name": "Monitoring"
+        },
+        {
+          "name": "Alert"
+        },
+        {
+          "name": "Threshold"
+        }
+      ],
+      "example": "アラートは対象・時刻・重大度・影響を確認してチケット化する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "OP-001",
+        "OP-002"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "SV-008",
+      "term": "ログ",
+      "lang": "ja",
+      "kind": "sv",
+      "tags": [
+        "SV",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "システムやアプリの動作、エラー、操作を記録した情報。",
+      "form": "時刻/タイムゾーン、対象、保管期間、アクセス権、改ざん防止を確認する。",
+      "parts": [
+        {
+          "name": "Event Log"
+        },
+        {
+          "name": "Syslog"
+        },
+        {
+          "name": "Audit Log"
+        }
+      ],
+      "example": "障害発生時刻の前後を保全し、個人情報を不用意に共有しない。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "NW-012",
+        "SC-009"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "AD-001",
+      "term": "Active Directory",
+      "lang": "ja",
+      "kind": "ad",
+      "tags": [
+        "AD",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "Windowsドメイン環境でユーザー、コンピューター、グループ等を集中管理する仕組み。",
+      "form": "ドメイン、OU、グループ、同期、複製状態を確認する。",
+      "parts": [
+        {
+          "name": "AD"
+        },
+        {
+          "name": "Domain"
+        },
+        {
+          "name": "OU"
+        },
+        {
+          "name": "Group Policy"
+        }
+      ],
+      "example": "ログイン障害時に対象ユーザーとドメイン状態を確認する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "AD-002",
+        "AD-003"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "AD-002",
+      "term": "認証",
+      "lang": "ja",
+      "kind": "ad",
+      "tags": [
+        "AD",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "利用者や機器が本人/正当な主体であることを確認すること。",
+      "form": "ID、認証要素、失敗回数、ロック、期限、MFA状態を確認する。",
+      "parts": [
+        {
+          "name": "Authentication"
+        },
+        {
+          "name": "Who are you?"
+        }
+      ],
+      "example": "パスワードを聞かず、本人確認済みの正式なリセット手順へ案内する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "AD-003",
+        "AD-005"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "AD-003",
+      "term": "認可",
+      "lang": "ja",
+      "kind": "ad",
+      "tags": [
+        "AD",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "認証済み主体が何を実行できるかを決めること。",
+      "form": "ロール、グループ、ACL、対象リソース、承認を確認する。",
+      "parts": [
+        {
+          "name": "Authorization"
+        },
+        {
+          "name": "What can you do?"
+        }
+      ],
+      "example": "ログインできるがファイルを開けない場合、認可/権限を確認する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "AD-002",
+        "AD-004"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "AD-004",
+      "term": "最小権限",
+      "lang": "ja",
+      "kind": "ad",
+      "tags": [
+        "AD",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "業務に必要な最小限の権限だけを付与する原則。",
+      "form": "業務根拠、承認者、対象範囲、期限、棚卸し日を確認する。",
+      "parts": [
+        {
+          "name": "Least Privilege"
+        },
+        {
+          "name": "RBAC"
+        }
+      ],
+      "example": "便利だからという理由だけで管理者権限を付与しない。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "AD-003",
+        "AD-006"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "AD-005",
+      "term": "MFA",
+      "lang": "ja",
+      "kind": "ad",
+      "tags": [
+        "AD",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "異なる種類の要素を複数組み合わせて認証する方式。",
+      "form": "登録要素、端末変更、復旧方法、失敗ログを確認する。",
+      "parts": [
+        {
+          "name": "Multi-Factor Authentication"
+        }
+      ],
+      "example": "MFA疲労攻撃が疑われる場合は承認せず、窓口へ報告する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "AD-002",
+        "SC-006"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "AD-006",
+      "term": "特権ID",
+      "lang": "ja",
+      "kind": "ad",
+      "tags": [
+        "AD",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "システム設定や重要データに強い操作権限を持つID。",
+      "form": "利用目的、承認、利用時間、記録、保管、棚卸しを確認する。",
+      "parts": [
+        {
+          "name": "Privileged Account"
+        },
+        {
+          "name": "Admin"
+        }
+      ],
+      "example": "日常業務と管理作業のIDを分け、共有アカウントを避ける。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "AD-004",
+        "SC-009"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "AD-007",
+      "term": "入社アカウント発行",
+      "lang": "ja",
+      "kind": "ad",
+      "tags": [
+        "AD",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "承認された入社情報に基づき業務用IDと必要権限を準備する業務。",
+      "form": "本人、所属、開始日、標準ロール、上長承認、MFAを確認する。",
+      "parts": [
+        {
+          "name": "Joiner"
+        },
+        {
+          "name": "Provisioning"
+        }
+      ],
+      "example": "申請→承認→作成→権限付与→利用確認→記録の順で実施する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "WF-003",
+        "AD-004"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "AD-008",
+      "term": "退職アカウント停止",
+      "lang": "ja",
+      "kind": "ad",
+      "tags": [
+        "AD",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "退職・契約終了時にアクセスを停止し、データを適切に引き継ぐ業務。",
+      "form": "正式通知、停止日時、対象ID、セッション、データ所有者を確認する。",
+      "parts": [
+        {
+          "name": "Leaver"
+        },
+        {
+          "name": "Deprovisioning"
+        }
+      ],
+      "example": "停止時刻を人事・責任者と合わせ、独断でデータを削除しない。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "WF-004",
+        "SC-001"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "SC-001",
+      "term": "CIA（機密性・完全性・可用性）",
+      "lang": "ja",
+      "kind": "sc",
+      "tags": [
+        "SC",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "情報セキュリティの基本3要素。漏えい防止、正確性維持、必要時に利用可能であること。",
+      "form": "対象情報について、漏えい・改ざん・停止の影響を評価する。",
+      "parts": [
+        {
+          "name": "Confidentiality"
+        },
+        {
+          "name": "Integrity"
+        },
+        {
+          "name": "Availability"
+        }
+      ],
+      "example": "顧客データの漏えいは機密性、改ざんは完全性、停止は可用性の問題。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "SC-012",
+        "BK-007"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "SC-002",
+      "term": "脆弱性",
+      "lang": "ja",
+      "kind": "sc",
+      "tags": [
+        "SC",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "ソフトウェアや設定に存在する、悪用される可能性のある弱点。",
+      "form": "資産、バージョン、深刻度、悪用状況、公開範囲、対策期限を確認する。",
+      "parts": [
+        {
+          "name": "Vulnerability"
+        },
+        {
+          "name": "CVE"
+        },
+        {
+          "name": "CVSS"
+        }
+      ],
+      "example": "検知→影響評価→優先順位→検証→承認済み対策→再確認。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "SC-003",
+        "OP-004"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "SC-003",
+      "term": "セキュリティパッチ",
+      "lang": "ja",
+      "kind": "sc",
+      "tags": [
+        "SC",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "脆弱性や不具合を修正する更新プログラム。",
+      "form": "対象、依存関係、検証環境、バックアップ、停止時間、戻し方を確認する。",
+      "parts": [
+        {
+          "name": "Patch"
+        },
+        {
+          "name": "Update"
+        },
+        {
+          "name": "Change"
+        }
+      ],
+      "example": "緊急パッチでも変更管理と影響確認を省略せず、緊急手順に従う。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "SC-002",
+        "OP-004"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "SC-004",
+      "term": "マルウェア",
+      "lang": "ja",
+      "kind": "sc",
+      "tags": [
+        "SC",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "端末やシステムに害を与える悪意あるソフトウェアの総称。",
+      "form": "検知名、端末、ユーザー、時刻、EDRアラート、ネットワーク状態を確認する。",
+      "parts": [
+        {
+          "name": "Malware"
+        },
+        {
+          "name": "Virus"
+        },
+        {
+          "name": "Trojan"
+        }
+      ],
+      "example": "組織の手順に従って隔離し、セキュリティ担当へ連絡する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "SC-005",
+        "SC-008",
+        "WF-008"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "SC-005",
+      "term": "ランサムウェア",
+      "lang": "ja",
+      "kind": "sc",
+      "tags": [
+        "SC",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "ファイル等を暗号化し、復旧と引き換えに金銭を要求する攻撃。",
+      "form": "感染範囲、共有領域、バックアップ、EDR、業務影響を確認する。",
+      "parts": [
+        {
+          "name": "Ransomware"
+        },
+        {
+          "name": "Encryption"
+        }
+      ],
+      "example": "端末隔離・報告・証拠保全を優先し、身代金支払いや復旧を独断で判断しない。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "SC-004",
+        "BK-004",
+        "WF-008"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "SC-006",
+      "term": "フィッシング",
+      "lang": "ja",
+      "kind": "sc",
+      "tags": [
+        "SC",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "偽メールや偽サイト等で認証情報・個人情報を盗む手口。",
+      "form": "送信元、URL、添付、クリック/入力の有無、報告時刻を確認する。",
+      "parts": [
+        {
+          "name": "Phishing"
+        },
+        {
+          "name": "Spoofing"
+        }
+      ],
+      "example": "リンクを開かず報告。入力済みなら速やかに窓口へ連絡し認証情報対応を行う。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "AD-005",
+        "SC-012"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "SC-007",
+      "term": "暗号化",
+      "lang": "ja",
+      "kind": "sc",
+      "tags": [
+        "SC",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "データを鍵なしでは読みにくい形式に変換して保護すること。",
+      "form": "通信時/保存時、アルゴリズム、鍵管理、ローテーションを確認する。",
+      "parts": [
+        {
+          "name": "Encryption at Rest"
+        },
+        {
+          "name": "in Transit"
+        }
+      ],
+      "example": "暗号化だけでなく鍵の保管・アクセス制御も必要。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "SC-001",
+        "SC-012"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "SC-008",
+      "term": "EDR",
+      "lang": "ja",
+      "kind": "sc",
+      "tags": [
+        "SC",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "端末の挙動を監視し、脅威検知・調査・対応を支援する仕組み。",
+      "form": "アラート、端末ID、検知時刻、プロセス、隔離状態を確認する。",
+      "parts": [
+        {
+          "name": "Endpoint Detection and Response"
+        }
+      ],
+      "example": "検知内容を消さず、SOC/セキュリティ担当の指示で対応する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "SC-004",
+        "SC-009"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "SC-009",
+      "term": "SIEM",
+      "lang": "ja",
+      "kind": "sc",
+      "tags": [
+        "SC",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "複数システムのログを集約し、相関分析や検知を行う仕組み。",
+      "form": "ログソース、時刻同期、相関ルール、アラート、保管期間を確認する。",
+      "parts": [
+        {
+          "name": "Security Information and Event Management"
+        }
+      ],
+      "example": "単一ログだけで結論を出さず、関連イベントを時系列で照合する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "SV-008",
+        "SC-008"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "SC-010",
+      "term": "WAF",
+      "lang": "ja",
+      "kind": "sc",
+      "tags": [
+        "SC",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "WebアプリへのHTTP(S)通信を検査し攻撃を防ぐ仕組み。",
+      "form": "対象URL、ルール、ブロックログ、誤検知、変更履歴を確認する。",
+      "parts": [
+        {
+          "name": "Web Application Firewall"
+        }
+      ],
+      "example": "正規通信を止めている可能性も含め、ログと変更承認を確認する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "NW-011",
+        "SC-002"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "SC-011",
+      "term": "DLP",
+      "lang": "ja",
+      "kind": "sc",
+      "tags": [
+        "SC",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "機密情報の不適切な送信・コピー・持出しを検知/制御する仕組み。",
+      "form": "対象データ、分類ラベル、送信経路、ポリシー、例外承認を確認する。",
+      "parts": [
+        {
+          "name": "Data Loss Prevention"
+        }
+      ],
+      "example": "誤検知解除や例外設定はデータ所有者・管理者の承認を得る。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "SC-001",
+        "SC-012"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "SC-012",
+      "term": "セキュリティインシデント",
+      "lang": "ja",
+      "kind": "sc",
+      "tags": [
+        "SC",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "情報漏えい、不正アクセス、マルウェア等の事故またはその疑い。",
+      "form": "発生時刻、対象、影響、証拠、封じ込め状態、報告先を記録する。",
+      "parts": [
+        {
+          "name": "Incident"
+        },
+        {
+          "name": "Triage"
+        },
+        {
+          "name": "Containment"
+        }
+      ],
+      "example": "報告→封じ込め→証拠保全→調査→復旧→再発防止。独断で証拠を消さない。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "WF-008",
+        "WF-009"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "BK-001",
+      "term": "フルバックアップ",
+      "lang": "ja",
+      "kind": "bk",
+      "tags": [
+        "BK",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "対象データ全体を取得するバックアップ方式。",
+      "form": "対象範囲、取得時刻、容量、成功ログ、保管先を確認する。",
+      "parts": [
+        {
+          "name": "Full Backup"
+        }
+      ],
+      "example": "復旧の基点となるフルバックアップの世代を確認する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "BK-004",
+        "BK-008"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "BK-002",
+      "term": "増分バックアップ",
+      "lang": "ja",
+      "kind": "bk",
+      "tags": [
+        "BK",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "直前のバックアップ以降に変更されたデータを取得する方式。",
+      "form": "復元に必要なバックアップ連鎖、取得失敗、世代を確認する。",
+      "parts": [
+        {
+          "name": "Incremental Backup"
+        }
+      ],
+      "example": "途中の増分が欠けると復元できない場合がある。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "BK-001",
+        "BK-004"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "BK-003",
+      "term": "差分バックアップ",
+      "lang": "ja",
+      "kind": "bk",
+      "tags": [
+        "BK",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "最後のフルバックアップ以降の変更を取得する方式。",
+      "form": "フルバックアップと最新差分の整合性、容量を確認する。",
+      "parts": [
+        {
+          "name": "Differential Backup"
+        }
+      ],
+      "example": "復元に必要な組み合わせを製品仕様で確認する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "BK-001",
+        "BK-004"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "BK-004",
+      "term": "リストア（復元）",
+      "lang": "ja",
+      "kind": "bk",
+      "tags": [
+        "BK",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "バックアップからデータやシステムを戻す作業。",
+      "form": "対象、時点、復元先、承認、上書き影響、整合性確認を行う。",
+      "parts": [
+        {
+          "name": "Restore"
+        },
+        {
+          "name": "Recovery"
+        }
+      ],
+      "example": "本番上書き前に復元先・対象時点・承認・戻し方を確認する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "BK-001",
+        "BK-008"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "BK-005",
+      "term": "RPO",
+      "lang": "ja",
+      "kind": "bk",
+      "tags": [
+        "BK",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "障害時に許容されるデータ損失の目標。どの時点まで戻ることを許容するか。",
+      "form": "業務責任者が定めた目標と実際のバックアップ間隔を確認する。",
+      "parts": [
+        {
+          "name": "Recovery Point Objective"
+        }
+      ],
+      "example": "RPOが1時間なら、原則として最大1時間分のデータ損失を許容する目標。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "BK-006",
+        "BK-007"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "BK-006",
+      "term": "RTO",
+      "lang": "ja",
+      "kind": "bk",
+      "tags": [
+        "BK",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "障害発生からサービス復旧までに許容される時間目標。",
+      "form": "復旧手順、要員、代替環境、依存システムを確認する。",
+      "parts": [
+        {
+          "name": "Recovery Time Objective"
+        }
+      ],
+      "example": "RTOが4時間なら、4時間以内の復旧を目標に計画する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "BK-005",
+        "BK-007"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "BK-007",
+      "term": "DR（災害復旧）",
+      "lang": "ja",
+      "kind": "bk",
+      "tags": [
+        "BK",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "災害や大規模障害からITサービスを復旧する計画・仕組み。",
+      "form": "優先システム、代替拠点、連絡網、RPO/RTO、訓練結果を確認する。",
+      "parts": [
+        {
+          "name": "Disaster Recovery"
+        }
+      ],
+      "example": "机上計画だけでなく訓練し、実際に復旧可能か検証する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "BK-005",
+        "BK-006",
+        "WF-007"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "BK-008",
+      "term": "復元テスト",
+      "lang": "ja",
+      "kind": "bk",
+      "tags": [
+        "BK",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "バックアップから実際に復元できることを定期確認する作業。",
+      "form": "テスト対象、隔離環境、整合性、所要時間、結果を記録する。",
+      "parts": [
+        {
+          "name": "Restore Test"
+        }
+      ],
+      "example": "バックアップ成功表示だけで復元可能と判断しない。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "BK-001",
+        "BK-004"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "OP-001",
+      "term": "監視運用",
+      "lang": "ja",
+      "kind": "op",
+      "tags": [
+        "OP",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "システム状態を継続的に確認し、異常を早期発見する業務。",
+      "form": "監視対象、閾値、通知先、メンテナンス時間、未対応アラートを確認する。",
+      "parts": [
+        {
+          "name": "Monitoring"
+        },
+        {
+          "name": "Observability"
+        }
+      ],
+      "example": "毎日、重大アラートと未対応チケットを確認する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "SV-007",
+        "OP-002"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "OP-002",
+      "term": "アラート",
+      "lang": "ja",
+      "kind": "op",
+      "tags": [
+        "OP",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "監視システムが異常や閾値超過を知らせる通知。",
+      "form": "重大度、対象、発生時刻、継続時間、影響、重複を確認する。",
+      "parts": [
+        {
+          "name": "Alert"
+        },
+        {
+          "name": "Warning"
+        },
+        {
+          "name": "Critical"
+        }
+      ],
+      "example": "通知を閉じる前に、原因・影響・担当・対応状況を確認する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "OP-001",
+        "WF-002"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "OP-003",
+      "term": "チケット管理",
+      "lang": "ja",
+      "kind": "op",
+      "tags": [
+        "OP",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "問合せ、障害、作業を記録し、担当と進捗を管理する仕組み。",
+      "form": "受付日時、担当、優先度、期限、対応履歴、完了条件を記録する。",
+      "parts": [
+        {
+          "name": "Ticket"
+        },
+        {
+          "name": "Incident"
+        },
+        {
+          "name": "Request"
+        }
+      ],
+      "example": "口頭対応でも必要な内容をチケットに残す。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "WF-001",
+        "WF-009"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "OP-004",
+      "term": "変更管理",
+      "lang": "ja",
+      "kind": "op",
+      "tags": [
+        "OP",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "システム変更のリスクを評価し、承認・実施・記録する管理プロセス。",
+      "form": "変更理由、対象、影響、テスト、承認、作業時間、戻し手順を確認する。",
+      "parts": [
+        {
+          "name": "Change Management"
+        },
+        {
+          "name": "Rollback"
+        }
+      ],
+      "example": "承認なしに本番設定を変更しない。緊急変更も事後記録を残す。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "SC-003",
+        "WF-006"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "OP-005",
+      "term": "問題管理",
+      "lang": "ja",
+      "kind": "op",
+      "tags": [
+        "OP",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "障害の根本原因を調べ、再発防止につなげる活動。",
+      "form": "繰返し事象、根本原因、暫定回避策、恒久対策、担当期限を確認する。",
+      "parts": [
+        {
+          "name": "Problem Management"
+        },
+        {
+          "name": "RCA"
+        }
+      ],
+      "example": "復旧だけで終了せず、原因と再発条件を分析する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "WF-010",
+        "OP-003"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "OP-006",
+      "term": "容量管理",
+      "lang": "ja",
+      "kind": "op",
+      "tags": [
+        "OP",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "CPU、メモリ、ストレージ、ライセンス等の枯渇を予防する業務。",
+      "form": "現在値、増加傾向、閾値、予測、増強リードタイムを確認する。",
+      "parts": [
+        {
+          "name": "Capacity Management"
+        }
+      ],
+      "example": "容量不足時に不要ファイルを独断で削除しない。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "SV-006",
+        "OP-001"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "OP-007",
+      "term": "定期点検",
+      "lang": "ja",
+      "kind": "op",
+      "tags": [
+        "OP",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "決められた周期でシステムや運用状態を確認する業務。",
+      "form": "点検項目、実施日、担当、結果、異常、証跡を確認する。",
+      "parts": [
+        {
+          "name": "Routine Check"
+        }
+      ],
+      "example": "チェック済みだけでなく異常時の対応記録も残す。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "OP-001",
+        "OP-003"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "OP-008",
+      "term": "エスカレーション",
+      "lang": "ja",
+      "kind": "op",
+      "tags": [
+        "OP",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "自分の権限・知識で解決できない事象を適切な担当へ引き継ぐこと。",
+      "form": "緊急度、影響、発生時刻、エラー、実施済み確認、連絡先を整理する。",
+      "parts": [
+        {
+          "name": "Escalation"
+        },
+        {
+          "name": "Handoff"
+        }
+      ],
+      "example": "遅らせず、事実と未確認事項を分けて連絡する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "WF-001",
+        "WF-002"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "OP-009",
+      "term": "SLA",
+      "lang": "ja",
+      "kind": "op",
+      "tags": [
+        "OP",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "サービス提供者と利用者間で合意したサービス水準。",
+      "form": "対象サービス、受付時間、応答/復旧目標、除外条件を確認する。",
+      "parts": [
+        {
+          "name": "Service Level Agreement"
+        }
+      ],
+      "example": "応答時間と解決時間を混同しない。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "OP-003",
+        "OP-008"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "OP-010",
+      "term": "引継ぎ",
+      "lang": "ja",
+      "kind": "op",
+      "tags": [
+        "OP",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "未完了作業や運用情報を次の担当者に渡すこと。",
+      "form": "現在状態、影響、実施済み、次の一手、期限、連絡先を記録する。",
+      "parts": [
+        {
+          "name": "Handover"
+        },
+        {
+          "name": "Shift Report"
+        }
+      ],
+      "example": "「対応中」だけでなく次に何をするかを明記する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "OP-003",
+        "WF-009"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "WF-001",
+      "term": "問合せ受付ワークフロー",
+      "lang": "ja",
+      "kind": "wf",
+      "tags": [
+        "WF",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "問い合わせを記録し、影響・緊急度を判断して解決または引継ぎする流れ。",
+      "form": "受付→対象/利用者→発生時刻/エラー→影響範囲→ナレッジ検索→対応/引継ぎ→利用者確認→完了記録。",
+      "parts": [
+        {
+          "name": "受付"
+        },
+        {
+          "name": "切り分け"
+        },
+        {
+          "name": "解決"
+        },
+        {
+          "name": "完了"
+        }
+      ],
+      "example": "問い合わせ例：社内システムにログインできない。端末・利用者・発生時刻・エラーを先に確認する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "OP-003",
+        "OP-008"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "WF-002",
+      "term": "障害対応ワークフロー",
+      "lang": "ja",
+      "kind": "wf",
+      "tags": [
+        "WF",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "障害の影響を抑え、安全に復旧し、報告・再発防止する流れ。",
+      "form": "検知→初動→影響範囲→重大度→連絡→証拠保全→原因切り分け→承認済み復旧→動作確認→報告。",
+      "parts": [
+        {
+          "name": "Incident"
+        },
+        {
+          "name": "Triage"
+        },
+        {
+          "name": "Recovery"
+        }
+      ],
+      "example": "複数部署に影響する場合は重大度を上げ、責任者へ早期連絡する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "OP-001",
+        "OP-002",
+        "OP-008"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "WF-003",
+      "term": "入社アカウント発行",
+      "lang": "ja",
+      "kind": "wf",
+      "tags": [
+        "WF",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "承認された入社情報をもとに、必要なID・端末・権限を準備する流れ。",
+      "form": "人事申請→本人/所属/開始日→標準ロール→承認→ID作成/MFA→端末/メール/VPN→利用確認→台帳記録。",
+      "parts": [
+        {
+          "name": "Joiner"
+        },
+        {
+          "name": "Provisioning"
+        }
+      ],
+      "example": "申請内容にない管理者権限を追加しない。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "AD-007",
+        "AD-004"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "WF-004",
+      "term": "退職・異動対応",
+      "lang": "ja",
+      "kind": "wf",
+      "tags": [
+        "WF",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "退職・異動時にアクセス停止や権限変更、データ引継ぎを行う流れ。",
+      "form": "正式通知→対象ID/日時→承認→指定時刻に停止/変更→セッション等処理→データ引継ぎ→端末回収→記録。",
+      "parts": [
+        {
+          "name": "Leaver"
+        },
+        {
+          "name": "Mover"
+        },
+        {
+          "name": "Deprovisioning"
+        }
+      ],
+      "example": "停止時刻と対象範囲を人事・責任者と確認する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "AD-008",
+        "AD-004"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "WF-005",
+      "term": "権限追加・変更",
+      "lang": "ja",
+      "kind": "wf",
+      "tags": [
+        "WF",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "業務上必要な権限を申請・承認に基づき付与する流れ。",
+      "form": "申請→必要性確認→データ所有者/上長承認→最小権限/期限→付与→利用確認→棚卸し。",
+      "parts": [
+        {
+          "name": "Access Request"
+        },
+        {
+          "name": "Approval"
+        }
+      ],
+      "example": "口頭依頼だけで権限を付与しない。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "AD-003",
+        "AD-004"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "WF-006",
+      "term": "システム変更",
+      "lang": "ja",
+      "kind": "wf",
+      "tags": [
+        "WF",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "影響とリスクを評価し、承認・テスト・実施・確認・記録する流れ。",
+      "form": "申請→影響調査→リスク/停止時間→検証→承認→バックアップ/戻し手順→変更→確認→記録。",
+      "parts": [
+        {
+          "name": "Change"
+        },
+        {
+          "name": "Test"
+        },
+        {
+          "name": "Approval"
+        },
+        {
+          "name": "Rollback"
+        }
+      ],
+      "example": "変更前に戻し手順と責任者を明確にする。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "OP-004",
+        "SC-003"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "WF-007",
+      "term": "バックアップ・復元対応",
+      "lang": "ja",
+      "kind": "wf",
+      "tags": [
+        "WF",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "バックアップの成功確認と、承認された復元作業を管理する流れ。",
+      "form": "対象/予定→結果ログ→失敗時チケット→復元要請/時点/承認→復元先確認→テスト復元→整合性確認→証跡。",
+      "parts": [
+        {
+          "name": "Backup"
+        },
+        {
+          "name": "Restore"
+        },
+        {
+          "name": "Verification"
+        }
+      ],
+      "example": "本番上書きの前に復元先と対象時点を必ず確認する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "BK-004",
+        "BK-008"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "WF-008",
+      "term": "セキュリティ事故対応",
+      "lang": "ja",
+      "kind": "wf",
+      "tags": [
+        "WF",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "疑わしい事象を報告し、封じ込め・証拠保全・調査・復旧を進める流れ。",
+      "form": "検知→窓口報告→指示に基づく封じ込め→ログ/証拠保全→影響調査→復旧判断→連絡→再発防止。",
+      "parts": [
+        {
+          "name": "Incident"
+        },
+        {
+          "name": "Containment"
+        },
+        {
+          "name": "Evidence"
+        }
+      ],
+      "example": "端末感染疑いは組織手順で隔離し、独断で初期化・ログ削除しない。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "SC-012",
+        "SC-008",
+        "SC-009"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "WF-009",
+      "term": "報告書作成",
+      "lang": "ja",
+      "kind": "wf",
+      "tags": [
+        "WF",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "事実・影響・時系列・対応・現在状態・次の対応を簡潔に記録する流れ。",
+      "form": "事実と推測を分離→時系列→影響→確認内容→実施対応→状態→未確定事項→担当/期限→レビュー。",
+      "parts": [
+        {
+          "name": "Report"
+        },
+        {
+          "name": "Timeline"
+        },
+        {
+          "name": "Evidence"
+        }
+      ],
+      "example": "原因が未確定なら「調査中」と書き、推測を断定しない。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "OP-003",
+        "OP-010"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "WF-010",
+      "term": "再発防止",
+      "lang": "ja",
+      "kind": "wf",
+      "tags": [
+        "WF",
+        "社内IT",
+        "実務",
+        "索引付き"
+      ],
+      "summary": "根本原因を特定し、恒久対策と効果確認を行う流れ。",
+      "form": "暫定復旧→原因分析→再発条件→対策/担当/期限→テスト→手順/監視/教育へ反映→効果確認。",
+      "parts": [
+        {
+          "name": "RCA"
+        },
+        {
+          "name": "Corrective Action"
+        }
+      ],
+      "example": "個人の注意だけでなく、仕組み・監視・権限・手順の改善を検討する。",
+      "mistakes": [
+        "本番環境で承認なしに変更・削除しない。",
+        "不明な場合は事実・影響・確認済み事項を記録して担当者へ確認する。"
+      ],
+      "related": [
+        "OP-005",
+        "WF-009"
+      ],
+      "sources": [
+        {
+          "title": "AI-HUB 社内ITナレッジセンター 初期教材",
+          "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    }
+  ]
+}
