@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "packId": "ai-hub-it-operations-ja-v1",
   "title": "社内IT実務ナレッジ（DB・NW・サーバー・AD・セキュリティ・運用）",
-  "description": "AI-HUBの辞書パック形式。索引付き用語・実務確認・例・関連索引を収録。初期学習用の一般知識であり、社内固有手順ではありません。",
+  "description": "AI-HUBの辞書パック形式。索引付き用語・実務確認・例・関連索引を収録。初期学習用の一般知識であり、社内固有手順ではありません。 PowerShell実務コマンド作成・運用の索引を追加。",
   "lang": "ja",
   "builtAt": "2026-11-25",
   "entries": [
@@ -3139,6 +3139,1046 @@
         {
           "title": "AI-HUB 社内ITナレッジセンター 初期教材",
           "id": "docs/IT-OPERATIONS-HANDBOOK.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "PS-001",
+      "term": "PowerShellとは",
+      "lang": "ja",
+      "kind": "ps",
+      "tags": [
+        "PowerShell",
+        "Windows運用",
+        "実務",
+        "コマンド作成"
+      ],
+      "summary": "Windows管理や自動化に使えるシェル兼スクリプト言語。",
+      "form": "PowerShellのバージョン、実行端末、権限、対象環境を確認する。",
+      "parts": [
+        {
+          "name": "Shell"
+        },
+        {
+          "name": "cmdlet"
+        },
+        {
+          "name": "script"
+        }
+      ],
+      "example": "Get-ComputerInfo | Select-Object WindowsProductName, OsVersion",
+      "mistakes": [
+        "最初はGet系の読み取りコマンドで確認し、Set/Remove/Restart等の変更系は承認・対象確認・復旧策をそろえてから扱う。",
+        "実行ポリシーを安易に緩和しない。外部スクリプトは内容・署名・配布元を確認する。"
+      ],
+      "related": [
+        "PS-002",
+        "PS-003"
+      ],
+      "sources": [
+        {
+          "title": "PowerShell実務マスター教材",
+          "id": "docs/POWERSHELL-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "PS-002",
+      "term": "コマンドレットの基本形",
+      "lang": "ja",
+      "kind": "ps",
+      "tags": [
+        "PowerShell",
+        "Windows運用",
+        "実務",
+        "コマンド作成"
+      ],
+      "summary": "Verb-Noun形式で機能を表すPowerShellの基本コマンド。",
+      "form": "Get-Commandで名前・動詞・モジュールを調べる。",
+      "parts": [
+        {
+          "name": "Get-"
+        },
+        {
+          "name": "Set-"
+        },
+        {
+          "name": "New-"
+        },
+        {
+          "name": "Remove-"
+        },
+        {
+          "name": "Test-"
+        }
+      ],
+      "example": "Get-Command *Service*",
+      "mistakes": [
+        "最初はGet系の読み取りコマンドで確認し、Set/Remove/Restart等の変更系は承認・対象確認・復旧策をそろえてから扱う。",
+        "実行ポリシーを安易に緩和しない。外部スクリプトは内容・署名・配布元を確認する。"
+      ],
+      "related": [
+        "PS-001",
+        "PS-003"
+      ],
+      "sources": [
+        {
+          "title": "PowerShell実務マスター教材",
+          "id": "docs/POWERSHELL-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "PS-003",
+      "term": "Get-Helpで調べる",
+      "lang": "ja",
+      "kind": "ps",
+      "tags": [
+        "PowerShell",
+        "Windows運用",
+        "実務",
+        "コマンド作成"
+      ],
+      "summary": "コマンドの説明・構文・例を確認するヘルプ機能。",
+      "form": "Get-Help コマンド名 -Examples、-Fullで確認する。",
+      "parts": [
+        {
+          "name": "Get-Help"
+        },
+        {
+          "name": "-Examples"
+        },
+        {
+          "name": "-Online"
+        }
+      ],
+      "example": "Get-Help Get-Service -Examples",
+      "mistakes": [
+        "最初はGet系の読み取りコマンドで確認し、Set/Remove/Restart等の変更系は承認・対象確認・復旧策をそろえてから扱う。",
+        "実行ポリシーを安易に緩和しない。外部スクリプトは内容・署名・配布元を確認する。"
+      ],
+      "related": [
+        "PS-002",
+        "PS-004"
+      ],
+      "sources": [
+        {
+          "title": "PowerShell実務マスター教材",
+          "id": "docs/POWERSHELL-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "PS-004",
+      "term": "オブジェクトとパイプライン",
+      "lang": "ja",
+      "kind": "ps",
+      "tags": [
+        "PowerShell",
+        "Windows運用",
+        "実務",
+        "コマンド作成"
+      ],
+      "summary": "PowerShellは文字列だけでなくオブジェクトをパイプで渡す。",
+      "form": "Get-Memberで型とプロパティ・メソッドを確認する。",
+      "parts": [
+        {
+          "name": "|"
+        },
+        {
+          "name": "Get-Member"
+        },
+        {
+          "name": "Property"
+        }
+      ],
+      "example": "Get-Service | Get-Member",
+      "mistakes": [
+        "最初はGet系の読み取りコマンドで確認し、Set/Remove/Restart等の変更系は承認・対象確認・復旧策をそろえてから扱う。",
+        "実行ポリシーを安易に緩和しない。外部スクリプトは内容・署名・配布元を確認する。"
+      ],
+      "related": [
+        "PS-003",
+        "PS-005"
+      ],
+      "sources": [
+        {
+          "title": "PowerShell実務マスター教材",
+          "id": "docs/POWERSHELL-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "PS-005",
+      "term": "Where-Objectで絞り込む",
+      "lang": "ja",
+      "kind": "ps",
+      "tags": [
+        "PowerShell",
+        "Windows運用",
+        "実務",
+        "コマンド作成"
+      ],
+      "summary": "条件に一致するオブジェクトだけを残す。",
+      "form": "比較演算子と対象プロパティを確認する。",
+      "parts": [
+        {
+          "name": "Where-Object"
+        },
+        {
+          "name": "-eq"
+        },
+        {
+          "name": "-like"
+        },
+        {
+          "name": "-gt"
+        }
+      ],
+      "example": "Get-Service | Where-Object Status -eq 'Running'",
+      "mistakes": [
+        "最初はGet系の読み取りコマンドで確認し、Set/Remove/Restart等の変更系は承認・対象確認・復旧策をそろえてから扱う。",
+        "実行ポリシーを安易に緩和しない。外部スクリプトは内容・署名・配布元を確認する。"
+      ],
+      "related": [
+        "PS-004",
+        "PS-006"
+      ],
+      "sources": [
+        {
+          "title": "PowerShell実務マスター教材",
+          "id": "docs/POWERSHELL-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "PS-006",
+      "term": "Select-Objectで必要項目を選ぶ",
+      "lang": "ja",
+      "kind": "ps",
+      "tags": [
+        "PowerShell",
+        "Windows運用",
+        "実務",
+        "コマンド作成"
+      ],
+      "summary": "表示するプロパティや件数を選択する。",
+      "form": "プロパティ名、計算列、First/Lastを確認する。",
+      "parts": [
+        {
+          "name": "Select-Object"
+        },
+        {
+          "name": "-Property"
+        },
+        {
+          "name": "-First"
+        }
+      ],
+      "example": "Get-Process | Select-Object -First 10 Name,Id,CPU",
+      "mistakes": [
+        "最初はGet系の読み取りコマンドで確認し、Set/Remove/Restart等の変更系は承認・対象確認・復旧策をそろえてから扱う。",
+        "実行ポリシーを安易に緩和しない。外部スクリプトは内容・署名・配布元を確認する。"
+      ],
+      "related": [
+        "PS-004",
+        "PS-007"
+      ],
+      "sources": [
+        {
+          "title": "PowerShell実務マスター教材",
+          "id": "docs/POWERSHELL-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "PS-007",
+      "term": "Sort-ObjectとMeasure-Object",
+      "lang": "ja",
+      "kind": "ps",
+      "tags": [
+        "PowerShell",
+        "Windows運用",
+        "実務",
+        "コマンド作成"
+      ],
+      "summary": "結果を並べ替えたり件数・合計等を集計する。",
+      "form": "並べ替えキー、昇順/降順、集計対象を確認する。",
+      "parts": [
+        {
+          "name": "Sort-Object"
+        },
+        {
+          "name": "Measure-Object"
+        }
+      ],
+      "example": "Get-Process | Sort-Object CPU -Descending | Select-Object -First 5",
+      "mistakes": [
+        "最初はGet系の読み取りコマンドで確認し、Set/Remove/Restart等の変更系は承認・対象確認・復旧策をそろえてから扱う。",
+        "実行ポリシーを安易に緩和しない。外部スクリプトは内容・署名・配布元を確認する。"
+      ],
+      "related": [
+        "PS-005",
+        "PS-006"
+      ],
+      "sources": [
+        {
+          "title": "PowerShell実務マスター教材",
+          "id": "docs/POWERSHELL-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "PS-008",
+      "term": "変数とデータ型",
+      "lang": "ja",
+      "kind": "ps",
+      "tags": [
+        "PowerShell",
+        "Windows運用",
+        "実務",
+        "コマンド作成"
+      ],
+      "summary": "$nameのように値を保持し、文字列・数値・配列などを扱う。",
+      "form": "変数名、型、null、配列の要素数を確認する。",
+      "parts": [
+        {
+          "name": "$variable"
+        },
+        {
+          "name": "[string]"
+        },
+        {
+          "name": "[int]"
+        },
+        {
+          "name": "Array"
+        }
+      ],
+      "example": "$computerName = $env:COMPUTERNAME",
+      "mistakes": [
+        "最初はGet系の読み取りコマンドで確認し、Set/Remove/Restart等の変更系は承認・対象確認・復旧策をそろえてから扱う。",
+        "実行ポリシーを安易に緩和しない。外部スクリプトは内容・署名・配布元を確認する。"
+      ],
+      "related": [
+        "PS-009",
+        "PS-010"
+      ],
+      "sources": [
+        {
+          "title": "PowerShell実務マスター教材",
+          "id": "docs/POWERSHELL-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "PS-009",
+      "term": "配列・ハッシュテーブル",
+      "lang": "ja",
+      "kind": "ps",
+      "tags": [
+        "PowerShell",
+        "Windows運用",
+        "実務",
+        "コマンド作成"
+      ],
+      "summary": "複数の値やキーと値の組をまとめて扱う。",
+      "form": "要素の型、キー名、空要素、重複を確認する。",
+      "parts": [
+        {
+          "name": "@()"
+        },
+        {
+          "name": "@{}"
+        },
+        {
+          "name": "キー"
+        },
+        {
+          "name": "値"
+        }
+      ],
+      "example": "$servers = @('SRV01','SRV02')",
+      "mistakes": [
+        "最初はGet系の読み取りコマンドで確認し、Set/Remove/Restart等の変更系は承認・対象確認・復旧策をそろえてから扱う。",
+        "実行ポリシーを安易に緩和しない。外部スクリプトは内容・署名・配布元を確認する。"
+      ],
+      "related": [
+        "PS-008",
+        "PS-010"
+      ],
+      "sources": [
+        {
+          "title": "PowerShell実務マスター教材",
+          "id": "docs/POWERSHELL-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "PS-010",
+      "term": "条件分岐 if / switch",
+      "lang": "ja",
+      "kind": "ps",
+      "tags": [
+        "PowerShell",
+        "Windows運用",
+        "実務",
+        "コマンド作成"
+      ],
+      "summary": "条件に応じて実行する処理を切り替える。",
+      "form": "条件式、比較演算子、else側の動作を確認する。",
+      "parts": [
+        {
+          "name": "if"
+        },
+        {
+          "name": "elseif"
+        },
+        {
+          "name": "else"
+        },
+        {
+          "name": "switch"
+        }
+      ],
+      "example": "if ($freeGB -lt 10) { '容量注意' } else { '正常' }",
+      "mistakes": [
+        "最初はGet系の読み取りコマンドで確認し、Set/Remove/Restart等の変更系は承認・対象確認・復旧策をそろえてから扱う。",
+        "実行ポリシーを安易に緩和しない。外部スクリプトは内容・署名・配布元を確認する。"
+      ],
+      "related": [
+        "PS-008",
+        "PS-011"
+      ],
+      "sources": [
+        {
+          "title": "PowerShell実務マスター教材",
+          "id": "docs/POWERSHELL-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "PS-011",
+      "term": "繰り返し foreach / for",
+      "lang": "ja",
+      "kind": "ps",
+      "tags": [
+        "PowerShell",
+        "Windows運用",
+        "実務",
+        "コマンド作成"
+      ],
+      "summary": "配列や対象一覧を順番に処理する。",
+      "form": "対象件数、処理対象、停止条件、エラー時動作を確認する。",
+      "parts": [
+        {
+          "name": "foreach"
+        },
+        {
+          "name": "for"
+        },
+        {
+          "name": "break"
+        },
+        {
+          "name": "continue"
+        }
+      ],
+      "example": "foreach ($name in $servers) { $name }",
+      "mistakes": [
+        "最初はGet系の読み取りコマンドで確認し、Set/Remove/Restart等の変更系は承認・対象確認・復旧策をそろえてから扱う。",
+        "実行ポリシーを安易に緩和しない。外部スクリプトは内容・署名・配布元を確認する。"
+      ],
+      "related": [
+        "PS-009",
+        "PS-012"
+      ],
+      "sources": [
+        {
+          "title": "PowerShell実務マスター教材",
+          "id": "docs/POWERSHELL-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "PS-012",
+      "term": "関数とVerb-Noun命名",
+      "lang": "ja",
+      "kind": "ps",
+      "tags": [
+        "PowerShell",
+        "Windows運用",
+        "実務",
+        "コマンド作成"
+      ],
+      "summary": "処理を再利用できる単位にまとめる。",
+      "form": "入力、出力、命名、スコープ、エラー処理を確認する。",
+      "parts": [
+        {
+          "name": "function"
+        },
+        {
+          "name": "param"
+        },
+        {
+          "name": "return"
+        }
+      ],
+      "example": "function Get-Greeting { param([string]$Name) \"Hello $Name\" }",
+      "mistakes": [
+        "最初はGet系の読み取りコマンドで確認し、Set/Remove/Restart等の変更系は承認・対象確認・復旧策をそろえてから扱う。",
+        "実行ポリシーを安易に緩和しない。外部スクリプトは内容・署名・配布元を確認する。"
+      ],
+      "related": [
+        "PS-008",
+        "PS-013"
+      ],
+      "sources": [
+        {
+          "title": "PowerShell実務マスター教材",
+          "id": "docs/POWERSHELL-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "PS-013",
+      "term": "スクリプト引数 param",
+      "lang": "ja",
+      "kind": "ps",
+      "tags": [
+        "PowerShell",
+        "Windows運用",
+        "実務",
+        "コマンド作成"
+      ],
+      "summary": "実行時に値を受け取る再利用可能なスクリプトを作る。",
+      "form": "必須/任意、型、既定値、ValidateSet等を確認する。",
+      "parts": [
+        {
+          "name": "param()"
+        },
+        {
+          "name": "Mandatory"
+        },
+        {
+          "name": "ValidateSet"
+        }
+      ],
+      "example": "param([string]$ComputerName = $env:COMPUTERNAME)",
+      "mistakes": [
+        "最初はGet系の読み取りコマンドで確認し、Set/Remove/Restart等の変更系は承認・対象確認・復旧策をそろえてから扱う。",
+        "実行ポリシーを安易に緩和しない。外部スクリプトは内容・署名・配布元を確認する。"
+      ],
+      "related": [
+        "PS-012",
+        "PS-014"
+      ],
+      "sources": [
+        {
+          "title": "PowerShell実務マスター教材",
+          "id": "docs/POWERSHELL-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "PS-014",
+      "term": "エラー処理 try / catch",
+      "lang": "ja",
+      "kind": "ps",
+      "tags": [
+        "PowerShell",
+        "Windows運用",
+        "実務",
+        "コマンド作成"
+      ],
+      "summary": "失敗を捕捉し、適切な記録・終了処理を行う。",
+      "form": "例外型、-ErrorAction Stop、finally、終了コードを確認する。",
+      "parts": [
+        {
+          "name": "try"
+        },
+        {
+          "name": "catch"
+        },
+        {
+          "name": "finally"
+        },
+        {
+          "name": "throw"
+        }
+      ],
+      "example": "try { Get-Item 'C:\\NoSuchFile' -ErrorAction Stop } catch { $_.Exception.Message }",
+      "mistakes": [
+        "最初はGet系の読み取りコマンドで確認し、Set/Remove/Restart等の変更系は承認・対象確認・復旧策をそろえてから扱う。",
+        "実行ポリシーを安易に緩和しない。外部スクリプトは内容・署名・配布元を確認する。"
+      ],
+      "related": [
+        "PS-013",
+        "PS-015"
+      ],
+      "sources": [
+        {
+          "title": "PowerShell実務マスター教材",
+          "id": "docs/POWERSHELL-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "PS-015",
+      "term": "CSV入出力",
+      "lang": "ja",
+      "kind": "ps",
+      "tags": [
+        "PowerShell",
+        "Windows運用",
+        "実務",
+        "コマンド作成"
+      ],
+      "summary": "表形式のデータをCSVとして読み書きする。",
+      "form": "文字コード、列名、区切り、出力先、個人情報を確認する。",
+      "parts": [
+        {
+          "name": "Import-Csv"
+        },
+        {
+          "name": "Export-Csv"
+        },
+        {
+          "name": "-NoTypeInformation"
+        }
+      ],
+      "example": "Import-Csv .\\users.csv | Select-Object Name,Department",
+      "mistakes": [
+        "最初はGet系の読み取りコマンドで確認し、Set/Remove/Restart等の変更系は承認・対象確認・復旧策をそろえてから扱う。",
+        "実行ポリシーを安易に緩和しない。外部スクリプトは内容・署名・配布元を確認する。"
+      ],
+      "related": [
+        "PS-006",
+        "PS-016"
+      ],
+      "sources": [
+        {
+          "title": "PowerShell実務マスター教材",
+          "id": "docs/POWERSHELL-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "PS-016",
+      "term": "ファイル・フォルダー操作",
+      "lang": "ja",
+      "kind": "ps",
+      "tags": [
+        "PowerShell",
+        "Windows運用",
+        "実務",
+        "コマンド作成"
+      ],
+      "summary": "ファイル一覧・パス・存在確認などを行う。",
+      "form": "対象パス、再帰範囲、アクセス権、削除の有無を確認する。",
+      "parts": [
+        {
+          "name": "Get-ChildItem"
+        },
+        {
+          "name": "Test-Path"
+        },
+        {
+          "name": "Join-Path"
+        }
+      ],
+      "example": "Get-ChildItem -LiteralPath $env:TEMP -File",
+      "mistakes": [
+        "最初はGet系の読み取りコマンドで確認し、Set/Remove/Restart等の変更系は承認・対象確認・復旧策をそろえてから扱う。",
+        "実行ポリシーを安易に緩和しない。外部スクリプトは内容・署名・配布元を確認する。"
+      ],
+      "related": [
+        "PS-015",
+        "PS-017"
+      ],
+      "sources": [
+        {
+          "title": "PowerShell実務マスター教材",
+          "id": "docs/POWERSHELL-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "PS-017",
+      "term": "Windowsサービス調査",
+      "lang": "ja",
+      "kind": "ps",
+      "tags": [
+        "PowerShell",
+        "Windows運用",
+        "実務",
+        "コマンド作成"
+      ],
+      "summary": "サービスの状態や起動種類を調べる。",
+      "form": "サービス名、状態、起動種類、依存関係を確認する。",
+      "parts": [
+        {
+          "name": "Get-Service"
+        },
+        {
+          "name": "Get-CimInstance"
+        }
+      ],
+      "example": "Get-Service | Where-Object Status -eq 'Stopped'",
+      "mistakes": [
+        "最初はGet系の読み取りコマンドで確認し、Set/Remove/Restart等の変更系は承認・対象確認・復旧策をそろえてから扱う。",
+        "実行ポリシーを安易に緩和しない。外部スクリプトは内容・署名・配布元を確認する。"
+      ],
+      "related": [
+        "PS-018",
+        "PS-020"
+      ],
+      "sources": [
+        {
+          "title": "PowerShell実務マスター教材",
+          "id": "docs/POWERSHELL-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "PS-018",
+      "term": "プロセス・リソース調査",
+      "lang": "ja",
+      "kind": "ps",
+      "tags": [
+        "PowerShell",
+        "Windows運用",
+        "実務",
+        "コマンド作成"
+      ],
+      "summary": "実行中プロセスとCPU・メモリ利用状況を調べる。",
+      "form": "プロセス名、PID、CPU、メモリ、実行ユーザーを確認する。",
+      "parts": [
+        {
+          "name": "Get-Process"
+        },
+        {
+          "name": "WorkingSet64"
+        },
+        {
+          "name": "CPU"
+        }
+      ],
+      "example": "Get-Process | Sort-Object CPU -Descending | Select-Object -First 10",
+      "mistakes": [
+        "最初はGet系の読み取りコマンドで確認し、Set/Remove/Restart等の変更系は承認・対象確認・復旧策をそろえてから扱う。",
+        "実行ポリシーを安易に緩和しない。外部スクリプトは内容・署名・配布元を確認する。"
+      ],
+      "related": [
+        "PS-017",
+        "PS-019"
+      ],
+      "sources": [
+        {
+          "title": "PowerShell実務マスター教材",
+          "id": "docs/POWERSHELL-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "PS-019",
+      "term": "イベントログ調査",
+      "lang": "ja",
+      "kind": "ps",
+      "tags": [
+        "PowerShell",
+        "Windows運用",
+        "実務",
+        "コマンド作成"
+      ],
+      "summary": "Windowsイベントログから障害原因の手掛かりを調べる。",
+      "form": "ログ名、期間、レベル、イベントID、時刻同期を確認する。",
+      "parts": [
+        {
+          "name": "Get-WinEvent"
+        },
+        {
+          "name": "FilterHashtable"
+        }
+      ],
+      "example": "Get-WinEvent -FilterHashtable @{LogName='System';StartTime=(Get-Date).AddHours(-2)} -MaxEvents 30",
+      "mistakes": [
+        "最初はGet系の読み取りコマンドで確認し、Set/Remove/Restart等の変更系は承認・対象確認・復旧策をそろえてから扱う。",
+        "実行ポリシーを安易に緩和しない。外部スクリプトは内容・署名・配布元を確認する。"
+      ],
+      "related": [
+        "PS-020",
+        "PS-021"
+      ],
+      "sources": [
+        {
+          "title": "PowerShell実務マスター教材",
+          "id": "docs/POWERSHELL-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "PS-020",
+      "term": "ネットワーク調査コマンド",
+      "lang": "ja",
+      "kind": "ps",
+      "tags": [
+        "PowerShell",
+        "Windows運用",
+        "実務",
+        "コマンド作成"
+      ],
+      "summary": "IP・DNS・経路・ポート接続を調べる。",
+      "form": "対象ホスト、名前解決、経路、ポート、プロキシを分けて確認する。",
+      "parts": [
+        {
+          "name": "Get-NetIPConfiguration"
+        },
+        {
+          "name": "Resolve-DnsName"
+        },
+        {
+          "name": "Test-NetConnection"
+        }
+      ],
+      "example": "Test-NetConnection example.com -Port 443",
+      "mistakes": [
+        "最初はGet系の読み取りコマンドで確認し、Set/Remove/Restart等の変更系は承認・対象確認・復旧策をそろえてから扱う。",
+        "実行ポリシーを安易に緩和しない。外部スクリプトは内容・署名・配布元を確認する。"
+      ],
+      "related": [
+        "PS-017",
+        "PS-019"
+      ],
+      "sources": [
+        {
+          "title": "PowerShell実務マスター教材",
+          "id": "docs/POWERSHELL-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "PS-021",
+      "term": "リモート管理の基本",
+      "lang": "ja",
+      "kind": "ps",
+      "tags": [
+        "PowerShell",
+        "Windows運用",
+        "実務",
+        "コマンド作成"
+      ],
+      "summary": "承認された端末へPowerShell Remotingで接続し管理する。",
+      "form": "接続先、認証方式、許可範囲、監査、実行権限を確認する。",
+      "parts": [
+        {
+          "name": "Invoke-Command"
+        },
+        {
+          "name": "Enter-PSSession"
+        },
+        {
+          "name": "WinRM"
+        }
+      ],
+      "example": "Test-WSMan -ComputerName SERVER01（許可された環境のみ）",
+      "mistakes": [
+        "最初はGet系の読み取りコマンドで確認し、Set/Remove/Restart等の変更系は承認・対象確認・復旧策をそろえてから扱う。",
+        "実行ポリシーを安易に緩和しない。外部スクリプトは内容・署名・配布元を確認する。"
+      ],
+      "related": [
+        "PS-019",
+        "PS-020"
+      ],
+      "sources": [
+        {
+          "title": "PowerShell実務マスター教材",
+          "id": "docs/POWERSHELL-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "PS-022",
+      "term": "実行ポリシーとスクリプト安全性",
+      "lang": "ja",
+      "kind": "ps",
+      "tags": [
+        "PowerShell",
+        "Windows運用",
+        "実務",
+        "コマンド作成"
+      ],
+      "summary": "スクリプト実行に関するポリシーと信頼性を理解する。",
+      "form": "組織ポリシー、署名、配布元、実行範囲、管理者承認を確認する。",
+      "parts": [
+        {
+          "name": "Get-ExecutionPolicy"
+        },
+        {
+          "name": "Set-ExecutionPolicy"
+        },
+        {
+          "name": "署名"
+        }
+      ],
+      "example": "Get-ExecutionPolicy -List",
+      "mistakes": [
+        "最初はGet系の読み取りコマンドで確認し、Set/Remove/Restart等の変更系は承認・対象確認・復旧策をそろえてから扱う。",
+        "実行ポリシーを安易に緩和しない。外部スクリプトは内容・署名・配布元を確認する。"
+      ],
+      "related": [
+        "PS-001",
+        "PS-023"
+      ],
+      "sources": [
+        {
+          "title": "PowerShell実務マスター教材",
+          "id": "docs/POWERSHELL-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "PS-023",
+      "term": "スクリプト実行とデバッグ",
+      "lang": "ja",
+      "kind": "ps",
+      "tags": [
+        "PowerShell",
+        "Windows運用",
+        "実務",
+        "コマンド作成"
+      ],
+      "summary": "ps1ファイルを実行し、行番号・変数・エラーを調査する。",
+      "form": "保存先、文字コード、実行ポリシー、入力値、エラー行を確認する。",
+      "parts": [
+        {
+          "name": ".ps1"
+        },
+        {
+          "name": "-NoProfile"
+        },
+        {
+          "name": "Set-PSDebug"
+        }
+      ],
+      "example": "$PSVersionTable.PSVersion",
+      "mistakes": [
+        "最初はGet系の読み取りコマンドで確認し、Set/Remove/Restart等の変更系は承認・対象確認・復旧策をそろえてから扱う。",
+        "実行ポリシーを安易に緩和しない。外部スクリプトは内容・署名・配布元を確認する。"
+      ],
+      "related": [
+        "PS-014",
+        "PS-022"
+      ],
+      "sources": [
+        {
+          "title": "PowerShell実務マスター教材",
+          "id": "docs/POWERSHELL-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "PS-024",
+      "term": "ログ出力とTranscript",
+      "lang": "ja",
+      "kind": "ps",
+      "tags": [
+        "PowerShell",
+        "Windows運用",
+        "実務",
+        "コマンド作成"
+      ],
+      "summary": "スクリプトの実行経過・結果を記録する。",
+      "form": "ログ保存先、アクセス権、個人情報、ローテーションを確認する。",
+      "parts": [
+        {
+          "name": "Start-Transcript"
+        },
+        {
+          "name": "Stop-Transcript"
+        },
+        {
+          "name": "Add-Content"
+        }
+      ],
+      "example": "Start-Transcript -Path .\\run.log",
+      "mistakes": [
+        "最初はGet系の読み取りコマンドで確認し、Set/Remove/Restart等の変更系は承認・対象確認・復旧策をそろえてから扱う。",
+        "実行ポリシーを安易に緩和しない。外部スクリプトは内容・署名・配布元を確認する。"
+      ],
+      "related": [
+        "PS-014",
+        "PS-023"
+      ],
+      "sources": [
+        {
+          "title": "PowerShell実務マスター教材",
+          "id": "docs/POWERSHELL-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "PS-025",
+      "term": "安全な変更・削除の設計",
+      "lang": "ja",
+      "kind": "ps",
+      "tags": [
+        "PowerShell",
+        "Windows運用",
+        "実務",
+        "コマンド作成"
+      ],
+      "summary": "変更前に対象確認・WhatIf・承認・復旧策を設ける。",
+      "form": "-WhatIf対応、-Confirm、対象件数、バックアップ、承認を確認する。",
+      "parts": [
+        {
+          "name": "-WhatIf"
+        },
+        {
+          "name": "-Confirm"
+        },
+        {
+          "name": "SupportsShouldProcess"
+        }
+      ],
+      "example": "Remove-Itemは学習時に実行せず、まずGet-ChildItemと-WhatIfで確認。",
+      "mistakes": [
+        "最初はGet系の読み取りコマンドで確認し、Set/Remove/Restart等の変更系は承認・対象確認・復旧策をそろえてから扱う。",
+        "実行ポリシーを安易に緩和しない。外部スクリプトは内容・署名・配布元を確認する。"
+      ],
+      "related": [
+        "PS-022",
+        "PS-024"
+      ],
+      "sources": [
+        {
+          "title": "PowerShell実務マスター教材",
+          "id": "docs/POWERSHELL-PRACTICAL-MASTER.md"
         }
       ],
       "updatedAt": "2026-11-25T00:00:00Z"
