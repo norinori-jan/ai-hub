@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f1117">
-<meta name="ah-rev" content="ah-r17">
+<meta name="ah-rev" content="ah-r18">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -156,7 +156,7 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
   <div class="card">
     <input id="prSearch" type="search" placeholder="索引番号・用語・困っている症状で検索（例：NW-002 / DNS / ネットにつながらない）">
     <div class="practice-tools" id="prCats">
-      <button class="active" data-prcat="all">すべて</button><button data-prcat="db">DB</button><button data-prcat="nw">ネットワーク</button><button data-prcat="sv">サーバー</button><button data-prcat="ad">ID・権限</button><button data-prcat="sc">セキュリティ</button><button data-prcat="bk">バックアップ</button><button data-prcat="op">運用</button><button data-prcat="wf">ワークフロー</button>
+      <button class="active" data-prcat="all">すべて</button><button data-prcat="db">DB</button><button data-prcat="nw">ネットワーク</button><button data-prcat="sv">サーバー</button><button data-prcat="ad">ID・権限</button><button data-prcat="sc">セキュリティ</button><button data-prcat="bk">バックアップ</button><button data-prcat="op">運用</button><button data-prcat="wf">ワークフロー</button><button data-prcat="ps">PowerShell</button>
     </div>
     <div class="dim" id="prStatus">教材を読み込んでいます…</div>
   </div>
@@ -174,6 +174,8 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
       <div class="rl"><span><b>16〜20日目｜業務ワークフロー</b><br>問合せ・障害・入退社・権限・変更・復元を、受付から完了まで説明。</span></div>
       <div class="rl"><span><b>21〜25日目｜質問対応と報告</b><br>毎日3問の模擬問合せに回答し、時系列・影響・対応・次の一手を報告書にする。</span></div>
       <div class="rl"><span><b>26〜30日目｜総合演習</b><br>DNS障害、DB遅延、アカウントロック、不審メール、バックアップ失敗を模擬対応。</span></div>
+
+      <div class="rl"><span><b>PowerShell｜毎日60〜90分の並行トレーニング</b><br>コマンドの読み方→パイプライン→変数・条件・ループ→関数・スクリプト→PC/サービス/ログ/DNS調査→安全な自動化。詳細はPowerShell索引PS-001〜PS-025。</span></div>
     </div>
     <div class="practice-note">合格目安：各用語を30秒で説明できる／確認順を理由付きで説明できる／危険な操作を避けてエスカレーションできる／5分で簡潔な報告を書ける。</div>
   </div>
@@ -1498,7 +1500,7 @@ document.addEventListener('click',e=>{
 /* ---- 実務マスター：同梱の索引パックを読み、項目を押すだけで実務ガイドを表示 */
 let PRACTICE=[],prCat='all',prSelected='',prDone=(()=>{try{return JSON.parse(localStorage.getItem('ah_practice_done_v1')||'{}')}catch(_){return {}}})();
 const prEsc=esc;
-function prKindLabel(k){return ({db:'データベース',nw:'ネットワーク',sv:'サーバー',ad:'ID・権限',sc:'セキュリティ',bk:'バックアップ',op:'運用',wf:'ワークフロー'})[k]||k.toUpperCase()}
+function prKindLabel(k){return ({db:'データベース',nw:'ネットワーク',sv:'サーバー',ad:'ID・権限',sc:'セキュリティ',bk:'バックアップ',op:'運用',wf:'ワークフロー',ps:'PowerShell'})[k]||k.toUpperCase()}
 function prLoadCache(){try{const p=JSON.parse(localStorage.getItem('ah_practice_pack_v1')||'null');if(p&&Array.isArray(p.entries))PRACTICE=p.entries}catch(_){}}
 async function prLoad(){
   prLoadCache();prPaint();
@@ -1517,6 +1519,7 @@ function prPaint(){
 function prWorkflow(x){
  const k=x.kind,id=x.id;
  if(k==='wf')return (x.form||'受付 → 内容確認 → 対応 → 結果確認 → 記録').split(/[→＞]/).map(v=>v.trim()).filter(Boolean);
+ if(k==='ps')return ['目的を「対象・条件・出力」に分けて一文にする','Get-Command / Get-Helpで使うコマンドとパラメーターを調べる','Get系・Test系の読み取りコマンドを1つずつ試す','Where-Object / Select-Object / Sort-Objectで段階的に組み立てる','出力・エラー・対象範囲を確認し、必要ならCSVと調査メモに残す'];
  if(k==='sc')return ['検知内容・発生時刻・対象端末を記録する','影響範囲と情報漏えい・不正アクセスの可能性を確認する','社内のセキュリティ窓口・責任者へ速やかに報告する','指示に従って隔離・封じ込めを行い、証拠とログを保全する','復旧可否は責任者の判断を受け、再発防止策を記録する'];
  if(k==='bk')return ['対象データ・バックアップ世代・取得時刻を確認する','成功ログだけでなく復元可能性・復元テスト結果を確認する','復元依頼の対象・時点・復元先・承認者を確認する','本番上書きの影響とロールバック方法を確認する','承認された手順で復元し、整合性と業務確認を記録する'];
  if(k==='db')return ['接続先（本番/検証）と対象DB・テーブルを特定する','エラー時刻・対象SQL・影響件数・再現条件を確認する','SELECT・実行計画・ログなど読み取り中心で状況を把握する','更新・削除・INDEX変更は承認とバックアップを確認してから行う','結果・件数・性能・関連アプリへの影響を確認し記録する'];
