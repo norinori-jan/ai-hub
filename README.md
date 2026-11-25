@@ -45,6 +45,14 @@
 - [PowerShell実務マスター完全ガイド](docs/POWERSHELL-PRACTICAL-MASTER.md)：コマンドの組み立て方、基本構文、実務レシピ、エラー対応、安全設計、30日演習。
 - AI-HUBの「📊 実務」→「PowerShell」からPS-001〜PS-025を索引検索できます。
 
+## Java・ネットワークの実務学習
+
+- AI-HUB「📊 実務」→「Java」：JA-001〜JA-020。Javaの基本文法、クラス・メソッド、例外、HTTP/TCP、Maven/Gradle、JUnit、障害調査。
+- AI-HUB「📊 実務」→「ネットワーク」：NW-001〜NW-020。既存のネットワーク索引に加え、OS別コマンド、DNS・疎通・経路・TCPポート・HTTP/TLSの切り分けを収録。
+- 索引詳細に例題コード／コマンドとコピー操作を追加。コマンド作成の手順・障害対応・報告書まで確認できます。
+- [Java実務マスター完全ガイド](docs/JAVA-PRACTICAL-MASTER.md)
+- [ネットワークコマンド実務マスター](docs/NETWORK-COMMAND-MASTER.md)
+
 ## AI-HUBへの手動取り込み
 
 1. AI-HUBの「根拠にできる知識」→「辞書パック」を開く。
