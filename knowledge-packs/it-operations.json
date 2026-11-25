@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "packId": "ai-hub-it-operations-ja-v1",
   "title": "社内IT実務ナレッジ（DB・NW・サーバー・AD・セキュリティ・運用）",
-  "description": "AI-HUBの辞書パック形式。索引付き用語・実務確認・例・関連索引を収録。初期学習用の一般知識であり、社内固有手順ではありません。 PowerShell実務コマンド作成・運用の索引を追加。",
+  "description": "AI-HUBの辞書パック形式。索引付き用語・実務確認・例・関連索引を収録。初期学習用の一般知識であり、社内固有手順ではありません。 PowerShell実務コマンド作成・運用の索引を追加。 Java実務コード作成（JA-001〜JA-020）およびネットワーク調査コマンド作成（NW-001〜NW-020）を追加。",
   "lang": "ja",
   "builtAt": "2026-11-25",
   "entries": [
@@ -4182,6 +4182,1232 @@
         }
       ],
       "updatedAt": "2026-11-25T00:00:00Z"
+    },
+    {
+      "id": "JA-001",
+      "term": "Javaの実行環境",
+      "lang": "ja",
+      "kind": "java",
+      "tags": [
+        "Java",
+        "プログラミング",
+        "コード作成",
+        "実務"
+      ],
+      "summary": "JDK・JRE・JVMの役割とJava実行環境を理解する。",
+      "form": "java -version / javac -version で導入状況を確認。",
+      "parts": [
+        {
+          "name": "JDK"
+        },
+        {
+          "name": "JRE"
+        },
+        {
+          "name": "JVM"
+        },
+        {
+          "name": "PATH"
+        }
+      ],
+      "example": "java -version\njavac -version",
+      "mistakes": [
+        "コマンドやコードを実行する前に、対象環境・入力値・権限・影響範囲を確認する。",
+        "本番環境の設定変更・スキャン・再起動・データ変更は承認された手順で行う。"
+      ],
+      "related": [
+        "JA-002",
+        "JA-003"
+      ],
+      "sources": [
+        {
+          "title": "Java実務マスター教材",
+          "id": "docs/JAVA-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-26T00:00:00+09:00"
+    },
+    {
+      "id": "JA-002",
+      "term": "Javaソースのコンパイルと実行",
+      "lang": "ja",
+      "kind": "java",
+      "tags": [
+        "Java",
+        "プログラミング",
+        "コード作成",
+        "実務"
+      ],
+      "summary": "ソースコードをjavacで.classへ変換しjavaで実行する。",
+      "form": "ファイル名・public class名・作業ディレクトリを確認。",
+      "parts": [
+        {
+          "name": "javac"
+        },
+        {
+          "name": "java"
+        },
+        {
+          "name": ".java"
+        },
+        {
+          "name": ".class"
+        }
+      ],
+      "example": "javac Hello.java\njava Hello",
+      "mistakes": [
+        "コマンドやコードを実行する前に、対象環境・入力値・権限・影響範囲を確認する。",
+        "本番環境の設定変更・スキャン・再起動・データ変更は承認された手順で行う。"
+      ],
+      "related": [
+        "JA-001",
+        "JA-003"
+      ],
+      "sources": [
+        {
+          "title": "Java実務マスター教材",
+          "id": "docs/JAVA-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-26T00:00:00+09:00"
+    },
+    {
+      "id": "JA-003",
+      "term": "Javaプロジェクト構成",
+      "lang": "ja",
+      "kind": "java",
+      "tags": [
+        "Java",
+        "プログラミング",
+        "コード作成",
+        "実務"
+      ],
+      "summary": "src・package・resources・test・build成果物の基本構造。",
+      "form": "ビルドツールとディレクトリ構造を確認。",
+      "parts": [
+        {
+          "name": "src/main/java"
+        },
+        {
+          "name": "src/test/java"
+        },
+        {
+          "name": "package"
+        }
+      ],
+      "example": "Get-ChildItem -Recurse .\\src",
+      "mistakes": [
+        "コマンドやコードを実行する前に、対象環境・入力値・権限・影響範囲を確認する。",
+        "本番環境の設定変更・スキャン・再起動・データ変更は承認された手順で行う。"
+      ],
+      "related": [
+        "JA-001",
+        "JA-004"
+      ],
+      "sources": [
+        {
+          "title": "Java実務マスター教材",
+          "id": "docs/JAVA-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-26T00:00:00+09:00"
+    },
+    {
+      "id": "JA-004",
+      "term": "変数・プリミティブ型",
+      "lang": "ja",
+      "kind": "java",
+      "tags": [
+        "Java",
+        "プログラミング",
+        "コード作成",
+        "実務"
+      ],
+      "summary": "値を保持する変数と基本データ型を使う。",
+      "form": "型・初期値・スコープ・null可否を確認。",
+      "parts": [
+        {
+          "name": "int"
+        },
+        {
+          "name": "long"
+        },
+        {
+          "name": "double"
+        },
+        {
+          "name": "boolean"
+        },
+        {
+          "name": "char"
+        }
+      ],
+      "example": "int retryCount = 3;\nString host = \"localhost\";",
+      "mistakes": [
+        "コマンドやコードを実行する前に、対象環境・入力値・権限・影響範囲を確認する。",
+        "本番環境の設定変更・スキャン・再起動・データ変更は承認された手順で行う。"
+      ],
+      "related": [
+        "JA-005",
+        "JA-006"
+      ],
+      "sources": [
+        {
+          "title": "Java実務マスター教材",
+          "id": "docs/JAVA-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-26T00:00:00+09:00"
+    },
+    {
+      "id": "JA-005",
+      "term": "条件分岐 if / switch",
+      "lang": "ja",
+      "kind": "java",
+      "tags": [
+        "Java",
+        "プログラミング",
+        "コード作成",
+        "実務"
+      ],
+      "summary": "条件に応じて処理を分ける。",
+      "form": "境界値・null・全分岐をテストする。",
+      "parts": [
+        {
+          "name": "if"
+        },
+        {
+          "name": "else"
+        },
+        {
+          "name": "switch"
+        }
+      ],
+      "example": "if (port == 443) { System.out.println(\"HTTPS\"); }",
+      "mistakes": [
+        "コマンドやコードを実行する前に、対象環境・入力値・権限・影響範囲を確認する。",
+        "本番環境の設定変更・スキャン・再起動・データ変更は承認された手順で行う。"
+      ],
+      "related": [
+        "JA-004",
+        "JA-007"
+      ],
+      "sources": [
+        {
+          "title": "Java実務マスター教材",
+          "id": "docs/JAVA-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-26T00:00:00+09:00"
+    },
+    {
+      "id": "JA-006",
+      "term": "ループと配列",
+      "lang": "ja",
+      "kind": "java",
+      "tags": [
+        "Java",
+        "プログラミング",
+        "コード作成",
+        "実務"
+      ],
+      "summary": "複数データを繰り返し処理する。",
+      "form": "件数・配列境界・無限ループを確認。",
+      "parts": [
+        {
+          "name": "for"
+        },
+        {
+          "name": "while"
+        },
+        {
+          "name": "拡張for"
+        },
+        {
+          "name": "配列"
+        }
+      ],
+      "example": "for (String host : hosts) { System.out.println(host); }",
+      "mistakes": [
+        "コマンドやコードを実行する前に、対象環境・入力値・権限・影響範囲を確認する。",
+        "本番環境の設定変更・スキャン・再起動・データ変更は承認された手順で行う。"
+      ],
+      "related": [
+        "JA-004",
+        "JA-007"
+      ],
+      "sources": [
+        {
+          "title": "Java実務マスター教材",
+          "id": "docs/JAVA-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-26T00:00:00+09:00"
+    },
+    {
+      "id": "JA-007",
+      "term": "メソッドの作り方",
+      "lang": "ja",
+      "kind": "java",
+      "tags": [
+        "Java",
+        "プログラミング",
+        "コード作成",
+        "実務"
+      ],
+      "summary": "処理を名前付きの再利用単位に分割する。",
+      "form": "引数・戻り値・責務・例外を設計。",
+      "parts": [
+        {
+          "name": "public"
+        },
+        {
+          "name": "static"
+        },
+        {
+          "name": "return"
+        },
+        {
+          "name": "引数"
+        }
+      ],
+      "example": "static boolean isValidPort(int port) { return port > 0 && port <= 65535; }",
+      "mistakes": [
+        "コマンドやコードを実行する前に、対象環境・入力値・権限・影響範囲を確認する。",
+        "本番環境の設定変更・スキャン・再起動・データ変更は承認された手順で行う。"
+      ],
+      "related": [
+        "JA-005",
+        "JA-008"
+      ],
+      "sources": [
+        {
+          "title": "Java実務マスター教材",
+          "id": "docs/JAVA-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-26T00:00:00+09:00"
+    },
+    {
+      "id": "JA-008",
+      "term": "クラスとオブジェクト",
+      "lang": "ja",
+      "kind": "java",
+      "tags": [
+        "Java",
+        "プログラミング",
+        "コード作成",
+        "実務"
+      ],
+      "summary": "データと処理をクラスにまとめる。",
+      "form": "責務・フィールド・コンストラクタ・可視性を確認。",
+      "parts": [
+        {
+          "name": "class"
+        },
+        {
+          "name": "new"
+        },
+        {
+          "name": "this"
+        },
+        {
+          "name": "constructor"
+        }
+      ],
+      "example": "class ServerInfo { String host; int port; }",
+      "mistakes": [
+        "コマンドやコードを実行する前に、対象環境・入力値・権限・影響範囲を確認する。",
+        "本番環境の設定変更・スキャン・再起動・データ変更は承認された手順で行う。"
+      ],
+      "related": [
+        "JA-007",
+        "JA-009"
+      ],
+      "sources": [
+        {
+          "title": "Java実務マスター教材",
+          "id": "docs/JAVA-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-26T00:00:00+09:00"
+    },
+    {
+      "id": "JA-009",
+      "term": "カプセル化とアクセス修飾子",
+      "lang": "ja",
+      "kind": "java",
+      "tags": [
+        "Java",
+        "プログラミング",
+        "コード作成",
+        "実務"
+      ],
+      "summary": "内部データを保護し、公開範囲を制御する。",
+      "form": "private/public/protected/packageの範囲を確認。",
+      "parts": [
+        {
+          "name": "private"
+        },
+        {
+          "name": "public"
+        },
+        {
+          "name": "getter"
+        },
+        {
+          "name": "setter"
+        }
+      ],
+      "example": "private String host;",
+      "mistakes": [
+        "コマンドやコードを実行する前に、対象環境・入力値・権限・影響範囲を確認する。",
+        "本番環境の設定変更・スキャン・再起動・データ変更は承認された手順で行う。"
+      ],
+      "related": [
+        "JA-008",
+        "JA-010"
+      ],
+      "sources": [
+        {
+          "title": "Java実務マスター教材",
+          "id": "docs/JAVA-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-26T00:00:00+09:00"
+    },
+    {
+      "id": "JA-010",
+      "term": "継承とインターフェース",
+      "lang": "ja",
+      "kind": "java",
+      "tags": [
+        "Java",
+        "プログラミング",
+        "コード作成",
+        "実務"
+      ],
+      "summary": "共通仕様と実装を分離し拡張しやすくする。",
+      "form": "継承より委譲・interfaceの適用場面を考える。",
+      "parts": [
+        {
+          "name": "extends"
+        },
+        {
+          "name": "implements"
+        },
+        {
+          "name": "interface"
+        }
+      ],
+      "example": "interface HealthCheck { boolean check(); }",
+      "mistakes": [
+        "コマンドやコードを実行する前に、対象環境・入力値・権限・影響範囲を確認する。",
+        "本番環境の設定変更・スキャン・再起動・データ変更は承認された手順で行う。"
+      ],
+      "related": [
+        "JA-008",
+        "JA-011"
+      ],
+      "sources": [
+        {
+          "title": "Java実務マスター教材",
+          "id": "docs/JAVA-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-26T00:00:00+09:00"
+    },
+    {
+      "id": "JA-011",
+      "term": "コレクション List / Map / Set",
+      "lang": "ja",
+      "kind": "java",
+      "tags": [
+        "Java",
+        "プログラミング",
+        "コード作成",
+        "実務"
+      ],
+      "summary": "複数データを用途に応じて管理する。",
+      "form": "重複・順序・キー一意性・件数を確認。",
+      "parts": [
+        {
+          "name": "List"
+        },
+        {
+          "name": "Map"
+        },
+        {
+          "name": "Set"
+        },
+        {
+          "name": "ArrayList"
+        },
+        {
+          "name": "HashMap"
+        }
+      ],
+      "example": "List<String> hosts = List.of(\"app01\", \"db01\");",
+      "mistakes": [
+        "コマンドやコードを実行する前に、対象環境・入力値・権限・影響範囲を確認する。",
+        "本番環境の設定変更・スキャン・再起動・データ変更は承認された手順で行う。"
+      ],
+      "related": [
+        "JA-006",
+        "JA-012"
+      ],
+      "sources": [
+        {
+          "title": "Java実務マスター教材",
+          "id": "docs/JAVA-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-26T00:00:00+09:00"
+    },
+    {
+      "id": "JA-012",
+      "term": "例外処理 try / catch",
+      "lang": "ja",
+      "kind": "java",
+      "tags": [
+        "Java",
+        "プログラミング",
+        "コード作成",
+        "実務"
+      ],
+      "summary": "実行時エラーを捕捉し適切に処理する。",
+      "form": "握りつぶさず、原因・スタックトレース・再throwを判断。",
+      "parts": [
+        {
+          "name": "try"
+        },
+        {
+          "name": "catch"
+        },
+        {
+          "name": "finally"
+        },
+        {
+          "name": "throws"
+        }
+      ],
+      "example": "try { Integer.parseInt(\"123\"); } catch (NumberFormatException e) { System.err.println(e.getMessage()); }",
+      "mistakes": [
+        "コマンドやコードを実行する前に、対象環境・入力値・権限・影響範囲を確認する。",
+        "本番環境の設定変更・スキャン・再起動・データ変更は承認された手順で行う。"
+      ],
+      "related": [
+        "JA-007",
+        "JA-013"
+      ],
+      "sources": [
+        {
+          "title": "Java実務マスター教材",
+          "id": "docs/JAVA-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-26T00:00:00+09:00"
+    },
+    {
+      "id": "JA-013",
+      "term": "ファイル入出力",
+      "lang": "ja",
+      "kind": "java",
+      "tags": [
+        "Java",
+        "プログラミング",
+        "コード作成",
+        "実務"
+      ],
+      "summary": "設定・ログ・CSV等のファイルを安全に扱う。",
+      "form": "文字コード・パス・権限・ファイルサイズを確認。",
+      "parts": [
+        {
+          "name": "Path"
+        },
+        {
+          "name": "Files"
+        },
+        {
+          "name": "BufferedReader"
+        }
+      ],
+      "example": "Path path = Path.of(\"app.log\");",
+      "mistakes": [
+        "コマンドやコードを実行する前に、対象環境・入力値・権限・影響範囲を確認する。",
+        "本番環境の設定変更・スキャン・再起動・データ変更は承認された手順で行う。"
+      ],
+      "related": [
+        "JA-012",
+        "JA-014"
+      ],
+      "sources": [
+        {
+          "title": "Java実務マスター教材",
+          "id": "docs/JAVA-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-26T00:00:00+09:00"
+    },
+    {
+      "id": "JA-014",
+      "term": "ログ出力",
+      "lang": "ja",
+      "kind": "java",
+      "tags": [
+        "Java",
+        "プログラミング",
+        "コード作成",
+        "実務"
+      ],
+      "summary": "障害調査に必要な時刻・レベル・相関IDを記録する。",
+      "form": "秘密情報をログへ出さず、ログレベルとローテーションを設計。",
+      "parts": [
+        {
+          "name": "Logger"
+        },
+        {
+          "name": "INFO"
+        },
+        {
+          "name": "WARN"
+        },
+        {
+          "name": "ERROR"
+        }
+      ],
+      "example": "Logger logger = Logger.getLogger(\"app\");",
+      "mistakes": [
+        "コマンドやコードを実行する前に、対象環境・入力値・権限・影響範囲を確認する。",
+        "本番環境の設定変更・スキャン・再起動・データ変更は承認された手順で行う。"
+      ],
+      "related": [
+        "JA-012",
+        "JA-015"
+      ],
+      "sources": [
+        {
+          "title": "Java実務マスター教材",
+          "id": "docs/JAVA-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-26T00:00:00+09:00"
+    },
+    {
+      "id": "JA-015",
+      "term": "Mavenコマンド",
+      "lang": "ja",
+      "kind": "java",
+      "tags": [
+        "Java",
+        "プログラミング",
+        "コード作成",
+        "実務"
+      ],
+      "summary": "pom.xmlを使い依存関係・ビルド・テストを管理する。",
+      "form": "JDK・pom・依存解決・テスト結果を確認。",
+      "parts": [
+        {
+          "name": "mvn"
+        },
+        {
+          "name": "pom.xml"
+        },
+        {
+          "name": "test"
+        },
+        {
+          "name": "package"
+        }
+      ],
+      "example": "mvn -version\nmvn test",
+      "mistakes": [
+        "コマンドやコードを実行する前に、対象環境・入力値・権限・影響範囲を確認する。",
+        "本番環境の設定変更・スキャン・再起動・データ変更は承認された手順で行う。"
+      ],
+      "related": [
+        "JA-001",
+        "JA-016"
+      ],
+      "sources": [
+        {
+          "title": "Java実務マスター教材",
+          "id": "docs/JAVA-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-26T00:00:00+09:00"
+    },
+    {
+      "id": "JA-016",
+      "term": "Gradleコマンド",
+      "lang": "ja",
+      "kind": "java",
+      "tags": [
+        "Java",
+        "プログラミング",
+        "コード作成",
+        "実務"
+      ],
+      "summary": "build.gradle等でビルドとタスクを管理する。",
+      "form": "Gradle Wrapper・JDK・タスク一覧を確認。",
+      "parts": [
+        {
+          "name": "gradle"
+        },
+        {
+          "name": "gradlew"
+        },
+        {
+          "name": "tasks"
+        },
+        {
+          "name": "build"
+        }
+      ],
+      "example": "./gradlew tasks\n./gradlew test",
+      "mistakes": [
+        "コマンドやコードを実行する前に、対象環境・入力値・権限・影響範囲を確認する。",
+        "本番環境の設定変更・スキャン・再起動・データ変更は承認された手順で行う。"
+      ],
+      "related": [
+        "JA-001",
+        "JA-015"
+      ],
+      "sources": [
+        {
+          "title": "Java実務マスター教材",
+          "id": "docs/JAVA-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-26T00:00:00+09:00"
+    },
+    {
+      "id": "JA-017",
+      "term": "JUnitテスト",
+      "lang": "ja",
+      "kind": "java",
+      "tags": [
+        "Java",
+        "プログラミング",
+        "コード作成",
+        "実務"
+      ],
+      "summary": "単体テストで期待する動作と境界値を確認する。",
+      "form": "正常系・異常系・境界値・再現性を確認。",
+      "parts": [
+        {
+          "name": "JUnit"
+        },
+        {
+          "name": "assert"
+        },
+        {
+          "name": "test"
+        }
+      ],
+      "example": "mvn test",
+      "mistakes": [
+        "コマンドやコードを実行する前に、対象環境・入力値・権限・影響範囲を確認する。",
+        "本番環境の設定変更・スキャン・再起動・データ変更は承認された手順で行う。"
+      ],
+      "related": [
+        "JA-015",
+        "JA-018"
+      ],
+      "sources": [
+        {
+          "title": "Java実務マスター教材",
+          "id": "docs/JAVA-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-26T00:00:00+09:00"
+    },
+    {
+      "id": "JA-018",
+      "term": "HTTPクライアント",
+      "lang": "ja",
+      "kind": "java",
+      "tags": [
+        "Java",
+        "プログラミング",
+        "コード作成",
+        "実務"
+      ],
+      "summary": "JavaからHTTP APIへ要求し応答を処理する。",
+      "form": "URL・タイムアウト・HTTP status・認証情報の保護を確認。",
+      "parts": [
+        {
+          "name": "HttpClient"
+        },
+        {
+          "name": "HttpRequest"
+        },
+        {
+          "name": "HttpResponse"
+        }
+      ],
+      "example": "HttpClient client = HttpClient.newHttpClient();",
+      "mistakes": [
+        "コマンドやコードを実行する前に、対象環境・入力値・権限・影響範囲を確認する。",
+        "本番環境の設定変更・スキャン・再起動・データ変更は承認された手順で行う。"
+      ],
+      "related": [
+        "JA-012",
+        "JA-019"
+      ],
+      "sources": [
+        {
+          "title": "Java実務マスター教材",
+          "id": "docs/JAVA-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-26T00:00:00+09:00"
+    },
+    {
+      "id": "JA-019",
+      "term": "Socket通信の基本",
+      "lang": "ja",
+      "kind": "java",
+      "tags": [
+        "Java",
+        "プログラミング",
+        "コード作成",
+        "実務"
+      ],
+      "summary": "TCPソケットでクライアント・サーバー通信を行う。",
+      "form": "接続先・ポート・タイムアウト・close・文字コードを確認。",
+      "parts": [
+        {
+          "name": "Socket"
+        },
+        {
+          "name": "ServerSocket"
+        },
+        {
+          "name": "InputStream"
+        },
+        {
+          "name": "OutputStream"
+        }
+      ],
+      "example": "try (Socket socket = new Socket(\"localhost\", 8080)) { System.out.println(socket.isConnected()); }",
+      "mistakes": [
+        "コマンドやコードを実行する前に、対象環境・入力値・権限・影響範囲を確認する。",
+        "本番環境の設定変更・スキャン・再起動・データ変更は承認された手順で行う。"
+      ],
+      "related": [
+        "JA-018",
+        "JA-020"
+      ],
+      "sources": [
+        {
+          "title": "Java実務マスター教材",
+          "id": "docs/JAVA-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-26T00:00:00+09:00"
+    },
+    {
+      "id": "JA-020",
+      "term": "Javaアプリの障害調査",
+      "lang": "ja",
+      "kind": "java",
+      "tags": [
+        "Java",
+        "プログラミング",
+        "コード作成",
+        "実務"
+      ],
+      "summary": "例外・ログ・スレッド・メモリ・接続先から原因を絞る。",
+      "form": "再現時刻・ログ・JDK・設定・依存サービスを照合。",
+      "parts": [
+        {
+          "name": "jcmd"
+        },
+        {
+          "name": "jstack"
+        },
+        {
+          "name": "jmap"
+        },
+        {
+          "name": "jconsole"
+        }
+      ],
+      "example": "jcmd <PID> VM.version\njcmd <PID> Thread.print",
+      "mistakes": [
+        "コマンドやコードを実行する前に、対象環境・入力値・権限・影響範囲を確認する。",
+        "本番環境の設定変更・スキャン・再起動・データ変更は承認された手順で行う。"
+      ],
+      "related": [
+        "JA-014",
+        "JA-019"
+      ],
+      "sources": [
+        {
+          "title": "Java実務マスター教材",
+          "id": "docs/JAVA-PRACTICAL-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-26T00:00:00+09:00"
+    },
+    {
+      "id": "NW-013",
+      "term": "SSH接続の基本",
+      "lang": "ja",
+      "kind": "netcmd",
+      "tags": [
+        "ネットワーク",
+        "コマンド作成",
+        "障害調査",
+        "実務"
+      ],
+      "summary": "暗号化されたリモートシェル接続を行う。",
+      "form": "接続先・鍵指紋・鍵管理・アカウント権限を確認。",
+      "parts": [
+        {
+          "name": "ssh"
+        },
+        {
+          "name": "known_hosts"
+        },
+        {
+          "name": "鍵認証"
+        }
+      ],
+      "example": "ssh user@server.example",
+      "mistakes": [
+        "コマンドやコードを実行する前に、対象環境・入力値・権限・影響範囲を確認する。",
+        "本番環境の設定変更・スキャン・再起動・データ変更は承認された手順で行う。"
+      ],
+      "related": [
+        "NW-006",
+        "NW-014"
+      ],
+      "sources": [
+        {
+          "title": "ネットワークコマンド実務教材",
+          "id": "docs/NETWORK-COMMAND-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-26T00:00:00+09:00"
+    },
+    {
+      "id": "NW-014",
+      "term": "パケットキャプチャの基礎",
+      "lang": "ja",
+      "kind": "netcmd",
+      "tags": [
+        "ネットワーク",
+        "コマンド作成",
+        "障害調査",
+        "実務"
+      ],
+      "summary": "通信パケットを取得してプロトコルの流れを調査する。",
+      "form": "承認・対象・取得時間・個人情報・保管先を確認。",
+      "parts": [
+        {
+          "name": "Wireshark"
+        },
+        {
+          "name": "tcpdump"
+        },
+        {
+          "name": "pcap"
+        }
+      ],
+      "example": "tcpdump -i eth0 -c 50",
+      "mistakes": [
+        "コマンドやコードを実行する前に、対象環境・入力値・権限・影響範囲を確認する。",
+        "本番環境の設定変更・スキャン・再起動・データ変更は承認された手順で行う。"
+      ],
+      "related": [
+        "NW-013",
+        "NW-015"
+      ],
+      "sources": [
+        {
+          "title": "ネットワークコマンド実務教材",
+          "id": "docs/NETWORK-COMMAND-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-26T00:00:00+09:00"
+    },
+    {
+      "id": "NW-015",
+      "term": "ネットワーク障害切り分け",
+      "lang": "ja",
+      "kind": "netcmd",
+      "tags": [
+        "ネットワーク",
+        "コマンド作成",
+        "障害調査",
+        "実務"
+      ],
+      "summary": "端末・LAN・GW・DNS・経路・ポート・アプリの順に調査。",
+      "form": "影響範囲を確認し、レイヤーごとに証跡を集める。",
+      "parts": [
+        {
+          "name": "OSI"
+        },
+        {
+          "name": "疎通"
+        },
+        {
+          "name": "名前解決"
+        },
+        {
+          "name": "ポート"
+        }
+      ],
+      "example": "ipconfig /all\nnslookup example.com\nTest-NetConnection example.com -Port 443",
+      "mistakes": [
+        "コマンドやコードを実行する前に、対象環境・入力値・権限・影響範囲を確認する。",
+        "本番環境の設定変更・スキャン・再起動・データ変更は承認された手順で行う。"
+      ],
+      "related": [
+        "NW-002",
+        "NW-004",
+        "NW-006"
+      ],
+      "sources": [
+        {
+          "title": "ネットワークコマンド実務教材",
+          "id": "docs/NETWORK-COMMAND-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-26T00:00:00+09:00"
+    },
+    {
+      "id": "NW-016",
+      "term": "ポート番号とプロトコル",
+      "lang": "ja",
+      "kind": "netcmd",
+      "tags": [
+        "ネットワーク",
+        "コマンド作成",
+        "障害調査",
+        "実務"
+      ],
+      "summary": "代表的なTCP/UDPポートと用途を理解する。",
+      "form": "サービス・ポート・プロトコル・社内独自設定を照合。",
+      "parts": [
+        {
+          "name": "22 SSH"
+        },
+        {
+          "name": "53 DNS"
+        },
+        {
+          "name": "80 HTTP"
+        },
+        {
+          "name": "443 HTTPS"
+        },
+        {
+          "name": "3389 RDP"
+        }
+      ],
+      "example": "Get-NetTCPConnection -State Listen",
+      "mistakes": [
+        "コマンドやコードを実行する前に、対象環境・入力値・権限・影響範囲を確認する。",
+        "本番環境の設定変更・スキャン・再起動・データ変更は承認された手順で行う。"
+      ],
+      "related": [
+        "NW-006",
+        "NW-007"
+      ],
+      "sources": [
+        {
+          "title": "ネットワークコマンド実務教材",
+          "id": "docs/NETWORK-COMMAND-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-26T00:00:00+09:00"
+    },
+    {
+      "id": "NW-017",
+      "term": "VPN接続調査",
+      "lang": "ja",
+      "kind": "netcmd",
+      "tags": [
+        "ネットワーク",
+        "コマンド作成",
+        "障害調査",
+        "実務"
+      ],
+      "summary": "VPN接続状態・経路・DNS・認証を確認する。",
+      "form": "接続状態・仮想NIC・ルート・DNS・MFA・装置ログを確認。",
+      "parts": [
+        {
+          "name": "VPN"
+        },
+        {
+          "name": "split tunnel"
+        },
+        {
+          "name": "route"
+        },
+        {
+          "name": "MFA"
+        }
+      ],
+      "example": "Get-NetIPConfiguration\nroute print",
+      "mistakes": [
+        "コマンドやコードを実行する前に、対象環境・入力値・権限・影響範囲を確認する。",
+        "本番環境の設定変更・スキャン・再起動・データ変更は承認された手順で行う。"
+      ],
+      "related": [
+        "NW-003",
+        "NW-010"
+      ],
+      "sources": [
+        {
+          "title": "ネットワークコマンド実務教材",
+          "id": "docs/NETWORK-COMMAND-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-26T00:00:00+09:00"
+    },
+    {
+      "id": "NW-018",
+      "term": "TLS証明書とHTTPS",
+      "lang": "ja",
+      "kind": "netcmd",
+      "tags": [
+        "ネットワーク",
+        "コマンド作成",
+        "障害調査",
+        "実務"
+      ],
+      "summary": "証明書チェーン・期限・ホスト名・TLS接続を理解する。",
+      "form": "期限・SAN・発行者・中間証明書・端末時刻を確認。",
+      "parts": [
+        {
+          "name": "TLS"
+        },
+        {
+          "name": "証明書"
+        },
+        {
+          "name": "SAN"
+        },
+        {
+          "name": "CA"
+        }
+      ],
+      "example": "curl -Iv https://example.com",
+      "mistakes": [
+        "コマンドやコードを実行する前に、対象環境・入力値・権限・影響範囲を確認する。",
+        "本番環境の設定変更・スキャン・再起動・データ変更は承認された手順で行う。"
+      ],
+      "related": [
+        "NW-008",
+        "NW-019"
+      ],
+      "sources": [
+        {
+          "title": "ネットワークコマンド実務教材",
+          "id": "docs/NETWORK-COMMAND-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-26T00:00:00+09:00"
+    },
+    {
+      "id": "NW-019",
+      "term": "ネットワークコマンドの組立て",
+      "lang": "ja",
+      "kind": "netcmd",
+      "tags": [
+        "ネットワーク",
+        "コマンド作成",
+        "障害調査",
+        "実務"
+      ],
+      "summary": "調査目的に応じて複数コマンドを順番に組み立てる。",
+      "form": "名前解決→経路/疎通→TCPポート→アプリ応答の順で比較。",
+      "parts": [
+        {
+          "name": "ipconfig"
+        },
+        {
+          "name": "nslookup"
+        },
+        {
+          "name": "ping"
+        },
+        {
+          "name": "tracert"
+        },
+        {
+          "name": "Test-NetConnection"
+        },
+        {
+          "name": "curl"
+        }
+      ],
+      "example": "nslookup example.com\nTest-NetConnection example.com -Port 443\ncurl -I https://example.com",
+      "mistakes": [
+        "コマンドやコードを実行する前に、対象環境・入力値・権限・影響範囲を確認する。",
+        "本番環境の設定変更・スキャン・再起動・データ変更は承認された手順で行う。"
+      ],
+      "related": [
+        "NW-002",
+        "NW-004",
+        "NW-006",
+        "NW-008"
+      ],
+      "sources": [
+        {
+          "title": "ネットワークコマンド実務教材",
+          "id": "docs/NETWORK-COMMAND-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-26T00:00:00+09:00"
+    },
+    {
+      "id": "NW-020",
+      "term": "ネットワーク調査報告",
+      "lang": "ja",
+      "kind": "netcmd",
+      "tags": [
+        "ネットワーク",
+        "コマンド作成",
+        "障害調査",
+        "実務"
+      ],
+      "summary": "観測結果・影響・原因候補・次の確認を明確に記録する。",
+      "form": "コマンド・実行時刻・対象・結果・未確認事項を記録。",
+      "parts": [
+        {
+          "name": "時系列"
+        },
+        {
+          "name": "影響範囲"
+        },
+        {
+          "name": "証跡"
+        },
+        {
+          "name": "暫定対応"
+        }
+      ],
+      "example": "Test-NetConnection server.example -Port 443",
+      "mistakes": [
+        "コマンドやコードを実行する前に、対象環境・入力値・権限・影響範囲を確認する。",
+        "本番環境の設定変更・スキャン・再起動・データ変更は承認された手順で行う。"
+      ],
+      "related": [
+        "NW-015",
+        "NW-019"
+      ],
+      "sources": [
+        {
+          "title": "ネットワークコマンド実務教材",
+          "id": "docs/NETWORK-COMMAND-MASTER.md"
+        }
+      ],
+      "updatedAt": "2026-11-26T00:00:00+09:00"
     }
   ]
 }
