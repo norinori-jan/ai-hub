@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f1117">
-<meta name="ah-rev" content="ah-r24">
+<meta name="ah-rev" content="ah-r25">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1547,6 +1547,7 @@ function prPaint(){
 }
 function prWorkflow(x){
  const k=x.kind,id=x.id;
+ if(k==='wf'&&id==='WF-002')return ['① 検知：警告・通報を受け、時刻と対象を記録する','② 初動：社内窓口・責任者へ速やかに連絡する','③ 事実確認：確認済みの事実と未確認事項を分ける','④ 証拠保全：ログ・アラート・時刻を組織の手順で保全する','⑤ 影響範囲：対象システム・期間・データ種別を許可範囲で整理する','⑥ 封じ込め：責任者の指示と承認を受けて実施する','⑦ 専門調査：セキュリティ・システム担当へ引き継ぐ','⑧ 報告判断：個人情報保護・法務・広報等が報告要否を判断する','⑨ 復旧確認：安全性確認後、責任者承認のもと復旧する','⑩ 報告・再発防止：時系列・影響・対応・残課題を記録する'];
  if(k==='wf')return (x.form||'受付 → 内容確認 → 対応 → 結果確認 → 記録').split(/[→＞]/).map(v=>v.trim()).filter(Boolean);
  if(k==='java')return ['作りたい機能を入力・処理・出力に分解する','変数・型・クラス・メソッドの役割を決める','小さな単位でコードを書き、コンパイルして動作を確認する','正常系・異常系・境界値をテストし、例外とログを確認する','レビュー・テスト後に成果物と実行手順を記録する'];
  if(k==='netcmd')return ['影響範囲と対象端末・宛先・ポートを特定する','IP設定・NIC状態を読み取り専用コマンドで確認する','DNS名前解決とデフォルト経路を順に確認する','疎通・TCPポート・HTTP/TLS応答を段階的に確認する','実行コマンド・時刻・結果を記録し、原因を断定せず報告する'];
@@ -1584,7 +1585,11 @@ function prStepPlaybook(step,i,total,x){
  if(/変更|付与|停止|隔離|封じ込め|復元|対応|実施/.test(t)){action='対象・変更内容・影響・バックアップ・戻し手順を確認し、承認済みの範囲だけ実行する。';evidence='承認番号、変更前後、実行者、開始/終了時刻、戻し手順';done='作業結果と変更点が記録され、戻し方が明確。';}
  if(/復旧|利用確認|動作確認|整合性|テスト/.test(t)){action='サービス状態・監視・アプリ応答・利用者の操作を確認し、再発がないか観察する。';evidence='ヘルスチェック、エラー率、テスト結果、利用者確認';done='必要な業務機能が正常に使えることを確認済み。';}
  if(/記録|報告|完了|再発防止|棚卸し/.test(t)){action='事実・推測・未確定事項を分け、時系列・対応・現在状態・次の担当と期限を記録する。';evidence='チケット、ログ保存先、報告書、担当者、期限';done='報告書がレビューされ、未完了事項の引継ぎ先が決まっている。';}
- if(id==='WF-001'||id==='WF-002')cmd='Get-Date\nGet-NetIPConfiguration\nResolve-DnsName <接続先ホスト名>\nTest-NetConnection <接続先ホスト名> -Port 443';
+ if(id==='WF-001')cmd='Get-Date\nGet-NetIPConfiguration\nResolve-DnsName <接続先ホスト名>\nTest-NetConnection <接続先ホスト名> -Port 443';
+ if(id==='WF-002'&&/検知|初動/.test(t))cmd='Get-Date\n# アラートID・対象システム・検知時刻を記録し、緊急連絡網に従い報告';
+ if(id==='WF-002'&&/事実確認|影響範囲|証拠保全/.test(t))cmd='# 組織で承認されたログ参照・保全手順を使用\n# 時刻・タイムゾーン・取得者・保存先・対象期間を記録\n# 顧客データを個人端末へコピーしない';
+ if(id==='WF-002'&&/封じ込め|専門調査|報告判断|復旧/.test(t))cmd='# 隔離・停止・認証情報変更は責任者と専門担当の指示・承認後に実施\n# 証拠保全・影響・切戻し方法を事前確認';
+ if(id==='WF-002'&&/報告・再発防止/.test(t))cmd='【検知日時・報告日時】\n【対象システム】\n【確認済み事実】\n【未確認事項】\n【個人情報への影響】\n【証拠保全・実施対応】\n【担当・次回報告時刻】\n【恒久対策】';
  if(['WF-003','WF-004','WF-005'].includes(id))cmd='Get-ADUser -Identity <ユーザーID> -Properties Enabled,MemberOf\nGet-ADPrincipalGroupMembership -Identity <ユーザーID>\n# ADモジュール導入済みの管理端末で承認対象を参照確認';
  if(id==='WF-006')cmd='Get-Service -Name <サービス名>\nGet-WinEvent -FilterHashtable @{LogName="System";StartTime=(Get-Date).AddHours(-2)} -MaxEvents 50';
  if(id==='WF-007')cmd='Get-ChildItem -LiteralPath <バックアップ確認用パス> -File | Select-Object Name,Length,LastWriteTime\n# 復元は承認・復元先・対象時点を確認後に実施';
@@ -1605,17 +1610,24 @@ const PR_QUIZ={
   {title:'最初に聞くこと',scene:'あなたは社内ヘルプデスクです。「社内システムにログインできません」と電話がありました。相手は急いでいます。',q:'最初に確認する内容として、最も適切なのはどれですか？',choices:['すぐにパスワードを初期化する','誰が・どのシステムで・いつから・どんなエラーかを確認する','サーバーを再起動する'],a:1,why:'まず対象と症状を正確にします。利用者、システム名、発生時刻、エラー表示が分かれば、影響範囲や次の調査を決められます。パスワード初期化やサーバー再起動は原因確認前に行いません。',tip:'聞き取りの型は「誰が／何に／いつから／何をすると／どうなる」です。パスワードそのものは聞かないでください。'},
   {title:'影響範囲を確認',scene:'聞き取りの結果、同じ部署の人もログインできないと分かりました。',q:'次に優先して確認することはどれですか？',choices:['その利用者のPCだけを詳しく調べる','何人・何部署に影響しているか、他システムは使えるかを確認する','全員のパスワードを変更する'],a:1,why:'複数人・複数部署に広がっているなら、個人端末だけの問題とは限りません。影響人数・部署・対象システム・代替手段を確認して優先度を判断します。',tip:'「一人だけ」か「複数人」かを早い段階で分けると、調査の方向が大きく変わります。'},
   {title:'受付記録を残す',scene:'いま分かっているのは、10:05にA部署の3名で発生し、ログイン画面に「認証に失敗しました」と表示されることです。原因はまだ不明です。',q:'受付記録として最も適切なのはどれですか？',choices:['認証サーバー故障と断定して記録する','発生時刻・対象・人数・エラー文を事実として記録し、原因は調査中とする','原因が分かるまで何も記録しない'],a:1,why:'報告では確認できた事実と推測を分けます。原因が未確定なら「調査中」と書き、発生時刻・対象・影響・エラー文を残します。',tip:'実務の記録は「事実」「推測」「未確認」を分けるのが基本です。'}
+ ],
+ 'WF-002':[
+{title:'最初の報告',scene:'【練習ケース】顧客情報を扱うシステムで、通常と異なる大量データ取得の警告が出ました。漏えいしたかは不明です。',q:'最初に取る行動は？',choices:['警告を消して様子を見る','検知時刻・対象・警告内容を記録し、社内セキュリティ窓口と責任者へ連絡する','サーバーを初期化する'],a:1,why:'漏えい未確定でも不審な動きは速やかに報告します。警告を消したり初期化したりすると証拠を失うおそれがあります。',tip:'最初は「記録・報告・指示を受ける」です。'},
+{title:'事実と推測を分ける',scene:'ログには普段使われない時間帯のデータ取得が記録されています。取得者・データ内容・外部送信は未確認です。',q:'報告として適切なのは？',choices:['顧客情報が盗まれたと断定','通常と異なる時間帯の取得ログを確認。取得者・対象データ・外部送信は未確認と記載','問題なしと判断'],a:1,why:'ログから分かる事実と未確認事項を分けます。データ取得記録だけで窃取や流出は確定しません。',tip:'「確認済み」「未確認」「可能性」を分けます。'},
+{title:'証拠を守る',scene:'同僚から「調査の邪魔だからサーバーを再起動してログを整理しよう」と提案されました。',q:'最も適切な対応は？',choices:['すぐ再起動してログ削除','独断で操作せず、責任者・セキュリティ担当に保全方法を確認し、時刻と保存先を記録','ログを私物USBへコピー'],a:1,why:'再起動・削除・初期化は証拠を失わせる可能性があります。保全方法と保管先は組織の手順に従います。',tip:'証拠は勝手に触らない・消さない・持ち出さない。'},
+{title:'影響範囲を整理する',scene:'管理者権限のない一次担当として「影響範囲の情報を集めて」と依頼されました。',q:'安全にできることは？',choices:['権限を借りて全顧客データを閲覧','承認範囲で対象システム・時間帯・アラート・関連チケットを整理し、詳細調査は担当者へ依頼','SNSで情報を募る'],a:1,why:'必要最小限の情報を許可された範囲で集めます。顧客データをむやみに閲覧・複製しません。',tip:'最小権限・最小限の情報・決められた連絡経路。'},
+{title:'初報をまとめる',scene:'原因と漏えい件数は調査中です。責任者へ初報を出します。',q:'初報に含める内容は？',choices:['原因を推測して断定','検知時刻・対象・確認済み事実・未確認事項・暫定影響・実施対応・次回報告予定','調査終了まで報告しない'],a:1,why:'完全な原因究明を待たず、現時点の事実と不確実な点を分けて共有します。法令上の報告要否は個人情報保護・法務等の責任者が判断します。',tip:'何が起きたか／何が未確認か／今何をしているか／次回いつ報告するか。'}
  ]
 };
 let prQuizState=(()=>{try{return JSON.parse(localStorage.getItem('ah_pr_quiz_v1')||'{}')}catch(_){return {}}})();
 function prQuizSave(){try{localStorage.setItem('ah_pr_quiz_v1',JSON.stringify(prQuizState))}catch(_){}}
 function prQuizHtml(x){
  const qs=PR_QUIZ[x.id];
- if(!qs)return '<section class="pr-quiz"><div class="pr-quiz-kicker">実技トレーニング</div><b>この練習問題は順番に準備しています。</b><p class="pr-quiz-muted">まずはWF-001「問い合わせ受付」を、説明を読みながらゆっくり練習しましょう。</p></section>';
+ if(!qs)return '<section class="pr-quiz"><div class="pr-quiz-kicker">実技トレーニング</div><b>この練習問題は順番に準備しています。</b><p class="pr-quiz-muted">この項目の練習問題は順番に準備しています。まずは説明とワークフローをゆっくり確認しましょう。</p></section>';
  let st=prQuizState[x.id]||{step:0,selected:null,completed:false};
- if(st.completed)return '<section class="pr-quiz"><div class="pr-quiz-kicker">実技トレーニング</div><h4>WF-001の練習完了！</h4><p>3問を最後まで進めました。急いで覚える必要はありません。説明とポイントをもう一度読み返してみましょう。</p><div class="pr-quiz-actions"><button class="sm pri" data-prquizreset="'+x.id+'">最初から復習する</button></div></section>';
+ if(st.completed)return '<section class="pr-quiz"><div class="pr-quiz-kicker">実技トレーニング</div><h4>'+prEsc(x.id)+'の練習完了！</h4><p>'+qs.length+'問を最後まで進めました。急いで覚える必要はありません。説明とポイントをもう一度読み返してみましょう。</p><div class="pr-quiz-actions"><button class="sm pri" data-prquizreset="'+x.id+'">最初から復習する</button></div></section>';
  const n=Math.max(0,Math.min(qs.length-1,Number(st.step)||0)),q=qs[n],revealed=st.selected!==null&&st.selected!==undefined,ok=Number(st.selected)===q.a;
- return '<section class="pr-quiz"><div class="pr-quiz-kicker">実技トレーニング ／ '+x.id+'</div><div><b>今回のケース：'+prEsc(q.title)+'</b></div><div class="pr-quiz-progress"><span style="width:'+Math.round((n/qs.length)*100)+'%"></span></div><div class="pr-quiz-muted">問題 '+(n+1)+' / '+qs.length+' ・自分のペースで進めましょう</div><p>'+prEsc(q.scene)+'</p><div class="pr-quiz-question">'+prEsc(q.q)+'</div>'+q.choices.map((c,i)=>'<button class="pr-quiz-choice '+(revealed&&i===q.a?'correct':'')+' '+(revealed&&Number(st.selected)===i&&i!==q.a?'wrong':'')+' '+(revealed&&Number(st.selected)===i?'chosen':'')+'" data-prquizanswer="'+i+'" data-prquizid="'+x.id+'" '+(revealed?'disabled':'')+'><b>'+(i+1)+'.</b> '+prEsc(c)+(revealed&&i===q.a?'　✓ 正解':'')+'</button>').join('')+(revealed?'<div class="pr-quiz-feedback '+(ok?'good':'retry')+'"><b>'+(ok?'正解です！':'ここは復習ポイントです')+'</b><p>'+prEsc(q.why)+'</p><b>覚えるポイント</b><p>'+prEsc(q.tip)+'</p></div><div class="pr-quiz-actions"><button class="sm pri" data-prquiznext="'+x.id+'">'+(n===qs.length-1?'練習を完了する':'次の問題へ')+'</button></div>':'<p class="pr-quiz-muted">選択肢を一つ選ぶと、答えと理由が表示されます。間違えても大丈夫です。</p>')+'</section>';
+ return '<section class="pr-quiz"><div class="pr-quiz-kicker">実技トレーニング ／ '+x.id+'</div><div class="pr-quiz-muted">一問ずつ回答し、理由を読んでから次へ進みます。間違えても大丈夫です。実際の事故対応では組織の手順と責任者の指示を優先してください。</div><div><b>今回のケース：'+prEsc(q.title)+'</b></div><div class="pr-quiz-progress"><span style="width:'+Math.round((n/qs.length)*100)+'%"></span></div><div class="pr-quiz-muted">問題 '+(n+1)+' / '+qs.length+' ・自分のペースで進めましょう</div><p>'+prEsc(q.scene)+'</p><div class="pr-quiz-question">'+prEsc(q.q)+'</div>'+q.choices.map((c,i)=>'<button class="pr-quiz-choice '+(revealed&&i===q.a?'correct':'')+' '+(revealed&&Number(st.selected)===i&&i!==q.a?'wrong':'')+' '+(revealed&&Number(st.selected)===i?'chosen':'')+'" data-prquizanswer="'+i+'" data-prquizid="'+x.id+'" '+(revealed?'disabled':'')+'><b>'+(i+1)+'.</b> '+prEsc(c)+(revealed&&i===q.a?'　✓ 正解':'')+'</button>').join('')+(revealed?'<div class="pr-quiz-feedback '+(ok?'good':'retry')+'"><b>'+(ok?'正解です！':'ここは復習ポイントです')+'</b><p>'+prEsc(q.why)+'</p><b>覚えるポイント</b><p>'+prEsc(q.tip)+'</p></div><div class="pr-quiz-actions"><button class="sm pri" data-prquiznext="'+x.id+'">'+(n===qs.length-1?'練習を完了する':'次の問題へ')+'</button></div>':'<p class="pr-quiz-muted">選択肢を一つ選ぶと、答えと理由が表示されます。間違えても大丈夫です。</p>')+'</section>';
 }
 
 function prDetailHtml(x){
