@@ -1535,6 +1535,21 @@ async function prLoad(){
   prLoadCache();prPaint();
   try{const r=await fetch('knowledge-packs/it-operations.json',{cache:'no-cache'});if(!r.ok)throw new Error('HTTP '+r.status);const p=await r.json();if(!p||!Array.isArray(p.entries))throw new Error('辞書形式が違います');PRACTICE=p.entries;try{localStorage.setItem('ah_practice_pack_v1',JSON.stringify(p))}catch(_){}}
   catch(e){if(!PRACTICE.length)$('prStatus').textContent='教材を読み込めません：'+e.message+'。GitHub Pagesで公開後に再読み込みしてください。'}
+  // 全分野の初級・中級・応用問題バンクを追加読み込み（既存WF-001/WF-002の手作り問題は優先）
+  try{
+    const qr=await fetch('knowledge-packs/master-practice-questions.json',{cache:'no-cache'});
+    if(!qr.ok)throw new Error('HTTP '+qr.status);
+    const qb=await qr.json();
+    (qb.domains||[]).forEach(domain=>{
+      const key=domain.id==='JA'?'JA':domain.id;
+      if(!PR_QUIZ[key])PR_QUIZ[key]=(domain.questions||[]).map(q=>({
+        title:q.level+'：'+q.id,
+        scene:domain.name+'の実務を想定した学習用ケースです。まず状況と目的を整理してから選んでください。',
+        q:q.question,choices:q.choices,a:q.answerIndex,why:q.explanation,tip:q.reviewPoint+' '+q.hint,level:q.level
+      }));
+    });
+    try{localStorage.setItem('ah_master_question_bank_v1',JSON.stringify(qb))}catch(_){}
+  }catch(e){console.warn('追加問題バンクを読み込めませんでした',e)}
   prPaint();if(!prSelected&&PRACTICE.length)prSelect(PRACTICE[0].id);
 }
 function prPaint(){
