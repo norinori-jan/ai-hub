@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f1117">
-<meta name="ah-rev" content="ah-r23">
+<meta name="ah-rev" content="ah-r24">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -1625,7 +1625,7 @@ function prDetailHtml(x){
  return '<div class="practice-detail"><div class="dim">'+prEsc(prKindLabel(x.kind))+' ／ '+prEsc(x.id)+'</div><h3>'+prEsc(x.term)+'</h3><div>'+prEsc(x.summary||'')+'</div>'+
  '<h4>① まず理解する</h4><div class="pblock">'+prEsc(x.form||x.summary||'')+'</div>'+
  '<h4>② 用語・構成要素</h4><ul>'+parts.map(p=>'<li>'+prEsc(p)+'</li>').join('')+'</ul>'+
- '<h4>③ 実務ワークフロー（視覚図）</h4>'+prFlowHtml(steps,x)+'<details class="pr-flow-more"><summary>手順を文章でも確認する</summary><ol>'+steps.map(p=>'<li>'+prEsc(p)+'</li>').join('')+'</ol></details>'+
+ '<h4>③ 実務ワークフロー（視覚図）</h4>'+prFlowHtml(steps,x)+'<h4>④ 実技トレーニング：ケースで練習</h4>'+prQuizHtml(x)+'<details class="pr-flow-more"><summary>手順を文章でも確認する</summary><ol>'+steps.map(p=>'<li>'+prEsc(p)+'</li>').join('')+'</ol></details>'+
  '<div class="practice-note">安全ルール：本番環境の更新・削除・再起動・権限変更・Firewall変更・端末初期化は、承認と影響確認なしに実行しない。判断できない場合は、確認済み事実を添えてエスカレーション。</div>'+
  '<h4>④ よくある質問への回答例</h4><div class="pblock">「'+prEsc(x.term)+'とは、'+prEsc(x.summary||'')+'」\n\n確認するときは、まず対象・環境・発生時刻を特定し、'+prEsc(steps[0]||'関連情報を確認')+'。原因が未確定の場合は断定せず、確認できた内容と次の対応をお伝えします。</div>'+
  '<h4>⑤ 障害時の初動</h4><ol><li>発生時刻・対象・エラー文を記録する。</li><li>影響範囲（何人・何台・どの業務）を確認する。</li><li>直近の変更・関連アラート・ログを確認し、証拠を保全する。</li><li>重大な影響やセキュリティ疑いは、初動段階で責任者へ連絡する。</li><li>承認された復旧手順で対応し、復旧後に利用者確認を行う。</li></ol>'+
