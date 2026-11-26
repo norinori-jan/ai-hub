@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f1117">
-<meta name="ah-rev" content="ah-r20">
+<meta name="ah-rev" content="ah-r21">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -82,6 +82,17 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
 .practice-detail .pblock{white-space:pre-wrap;word-break:break-word;background:#0b0e15;border:1px solid var(--line);border-radius:9px;padding:10px;font-size:12.5px}
 .practice-note{border-left:3px solid var(--gold);padding:7px 9px;background:#211d13;color:#ead9aa;font-size:12px;margin:8px 0}
 @media(min-width:760px){.practice-layout{display:grid;grid-template-columns:minmax(260px,0.85fr) minmax(0,1.4fr);gap:12px;align-items:start}.practice-list{max-height:70vh;overflow:auto}.practice-detail{position:sticky;top:10px}.practice-item{margin-bottom:6px}}
+
+/* Visual workflow cards */
+.pr-flow{display:flex;flex-direction:column;gap:0;margin:12px 0 18px}
+.pr-flow-step{position:relative;display:grid;grid-template-columns:42px minmax(0,1fr);gap:11px;align-items:start;padding:13px;border:1px solid var(--line,#d8dee8);border-radius:12px;background:var(--card,#fff)}
+.pr-flow-num{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-weight:800;background:var(--soft,#eef3fb);color:var(--accent,#315b9a)}
+.pr-flow-title{font-weight:750;line-height:1.5}
+.pr-flow-hint{font-size:12px;line-height:1.65;color:var(--muted,#667085);margin-top:3px}
+.pr-flow-arrow{height:24px;display:flex;align-items:center;padding-left:22px;color:var(--muted,#667085);font-size:18px}
+.pr-flow-caption{font-size:12px;color:var(--muted,#667085);margin:4px 0 8px}
+@media(min-width:900px){.pr-flow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.pr-flow-step{min-height:88px}.pr-flow-arrow{display:none}}
+
 </style>
 </head>
 <body>
@@ -1530,6 +1541,24 @@ function prWorkflow(x){
  if(k==='ad')return ['本人・所属・対象ID・申請内容を確認する（パスワードは聞かない）','認証エラー・ロック状態・MFA・端末条件を確認する','必要な権限と承認者を確認し最小権限で対応する','付与・解除の対象、時刻、期限を記録する','本人または依頼元に利用確認を依頼し完了を記録する'];
  return ['対象・利用者・発生時刻・エラー内容を確認する','影響範囲と緊急度を判断する','関連するログ・設定・直近の変更を確認する','承認済みの手順で対応し、危険な変更は避ける','復旧確認・利用者連絡・対応記録を行う'];
 }
+
+function prStepHint(step,index,total,x){
+ const t=String(step||'');
+ if(/受付|検知|申請|通知|要請|依頼/.test(t))return '入口：対象・依頼内容・発生時刻など、最初に必要な情報をそろえる。';
+ if(/影響|重大度|リスク|必要性/.test(t))return '判断：影響範囲・緊急度・優先順位を確認し、判断根拠を記録する。';
+ if(/承認|責任者|連絡|報告/.test(t))return '連携：権限のある担当者へ共有し、承認・指示・連絡履歴を残す。';
+ if(/確認|調査|切り分け|ログ|証拠|原因/.test(t))return '調査：読み取りを中心に事実を集め、推測と確認済み事項を分ける。';
+ if(/変更|付与|停止|隔離|封じ込め|復元|対応|実施/.test(t))return '実施：対象・手順・影響・戻し方を確認し、承認済みの範囲で実行する。';
+ if(/復旧|利用確認|動作確認|整合性|テスト/.test(t))return '検証：期待する状態に戻ったか、利用者・監視・関連機能で確認する。';
+ if(/記録|報告|完了|再発防止|棚卸し/.test(t))return '完了：結果・証跡・担当・期限・残課題を記録して引き継ぐ。';
+ if(index===0)return '開始：対象・目的・前提条件を明確にする。';
+ if(index===total-1)return '終了：結果を確認し、証跡と次の対応を記録する。';
+ return '次工程へ：確認した事実と未解決事項を整理して引き継ぐ。';
+}
+function prFlowHtml(steps,x){
+ return '<div class="pr-flow-caption">工程を上から順に確認します。各カードの補足で「何を確認するか」を把握できます。</div><div class="pr-flow">'+steps.map((step,i)=>'<div><div class="pr-flow-step"><div class="pr-flow-num">'+(i+1)+'</div><div><div class="pr-flow-title">'+prEsc(step)+'</div><div class="pr-flow-hint">'+prEsc(prStepHint(step,i,steps.length,x))+'</div></div></div>'+(i<steps.length-1?'<div class="pr-flow-arrow" aria-hidden="true">↓</div>':'')+'</div>').join('')+'</div>';
+}
+
 function prDetailHtml(x){
  const steps=prWorkflow(x),parts=(x.parts||[]).map(p=>typeof p==='string'?p:p.name).filter(Boolean);
  const related=(x.related||[]).map(id=>PRACTICE.find(z=>z.id===id)).filter(Boolean);
@@ -1537,7 +1566,7 @@ function prDetailHtml(x){
  return '<div class="practice-detail"><div class="dim">'+prEsc(prKindLabel(x.kind))+' ／ '+prEsc(x.id)+'</div><h3>'+prEsc(x.term)+'</h3><div>'+prEsc(x.summary||'')+'</div>'+
  '<h4>① まず理解する</h4><div class="pblock">'+prEsc(x.form||x.summary||'')+'</div>'+
  '<h4>② 用語・構成要素</h4><ul>'+parts.map(p=>'<li>'+prEsc(p)+'</li>').join('')+'</ul>'+
- '<h4>③ 実務での確認・操作手順</h4><ol>'+steps.map(p=>'<li>'+prEsc(p)+'</li>').join('')+'</ol>'+
+ '<h4>③ 実務ワークフロー（視覚図）</h4>'+prFlowHtml(steps,x)+'<details class="pr-flow-more"><summary>手順を文章でも確認する</summary><ol>'+steps.map(p=>'<li>'+prEsc(p)+'</li>').join('')+'</ol></details>'+
  '<div class="practice-note">安全ルール：本番環境の更新・削除・再起動・権限変更・Firewall変更・端末初期化は、承認と影響確認なしに実行しない。判断できない場合は、確認済み事実を添えてエスカレーション。</div>'+
  '<h4>④ よくある質問への回答例</h4><div class="pblock">「'+prEsc(x.term)+'とは、'+prEsc(x.summary||'')+'」\n\n確認するときは、まず対象・環境・発生時刻を特定し、'+prEsc(steps[0]||'関連情報を確認')+'。原因が未確定の場合は断定せず、確認できた内容と次の対応をお伝えします。</div>'+
  '<h4>⑤ 障害時の初動</h4><ol><li>発生時刻・対象・エラー文を記録する。</li><li>影響範囲（何人・何台・どの業務）を確認する。</li><li>直近の変更・関連アラート・ログを確認し、証拠を保全する。</li><li>重大な影響やセキュリティ疑いは、初動段階で責任者へ連絡する。</li><li>承認された復旧手順で対応し、復旧後に利用者確認を行う。</li></ol>'+
