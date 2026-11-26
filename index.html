@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f1117">
-<meta name="ah-rev" content="ah-r22">
+<meta name="ah-rev" content="ah-r23">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -94,6 +94,23 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
 @media(min-width:900px){.pr-flow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.pr-flow-step{min-height:88px}.pr-flow-arrow{display:none}}
 
 .pr-flow-step details{margin-top:9px;border-top:1px solid var(--line);padding-top:8px}.pr-flow-step summary{cursor:pointer;font-size:12px;font-weight:700;color:#9cc4ff;list-style:none}.pr-flow-step summary:after{content:'＋';float:right}.pr-flow-step details[open] summary:after{content:'−'}.pr-flow-detail{font-size:12px;line-height:1.7;margin-top:8px}.pr-flow-code{white-space:pre-wrap;overflow-wrap:anywhere;background:#0b0e15;border:1px solid var(--line);border-radius:8px;padding:9px;margin:7px 0;font:11px/1.6 ui-monospace,monospace}.pr-flow-meta{font-weight:700;margin-top:7px}
+
+.pr-quiz{border:1px solid var(--line);border-radius:12px;padding:14px;margin:12px 0;background:var(--card)}
+.pr-quiz-kicker{font-size:11px;color:var(--dim);font-weight:700;letter-spacing:.04em}
+.pr-quiz-progress{height:6px;border-radius:8px;background:#303646;overflow:hidden;margin:8px 0 12px}
+.pr-quiz-progress>span{display:block;height:100%;background:var(--ac);transition:width .2s}
+.pr-quiz-question{font-size:15px;font-weight:700;margin:8px 0 12px}
+.pr-quiz-choice{display:block;width:100%;text-align:left;margin:7px 0;padding:11px 12px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--tx);font:inherit;font-size:13px;cursor:pointer}
+.pr-quiz-choice:disabled{opacity:1;cursor:default}
+.pr-quiz-choice.chosen{border-color:var(--ac);background:#20324b}
+.pr-quiz-choice.correct{border-color:var(--ok);background:#17352f}
+.pr-quiz-choice.wrong{border-color:var(--ng);background:#3b2029}
+.pr-quiz-feedback{border-radius:9px;padding:11px;margin-top:10px;font-size:13px;line-height:1.7;background:#202a37}
+.pr-quiz-feedback.good{border:1px solid var(--ok)}.pr-quiz-feedback.retry{border:1px solid var(--gold)}
+.pr-quiz-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.pr-quiz-muted{font-size:12px;color:var(--dim)}
+.pr-quiz button:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+
 </style>
 </head>
 <body>
@@ -1582,6 +1599,25 @@ function prFlowHtml(steps,x){
  return '<div class="pr-flow-caption">各工程の「次にすること」を開くと、実施内容・確認する証跡・完了条件・コマンドが分かります。</div><div class="pr-flow">'+steps.map((step,i)=>{const d=prStepPlaybook(step,i,steps.length,x);return '<div><div class="pr-flow-step"><div class="pr-flow-num">'+(i+1)+'</div><div><div class="pr-flow-title">'+prEsc(step)+'</div><div class="pr-flow-hint">'+prEsc(prStepHint(step,i,steps.length,x))+'</div><details><summary>この工程で次にすること</summary><div class="pr-flow-detail"><div class="pr-flow-meta">実施内容</div><div>'+prEsc(d.action)+'</div><div class="pr-flow-meta">記録・確認するもの</div><div>'+prEsc(d.evidence)+'</div><div class="pr-flow-meta">次へ進む条件</div><div>'+prEsc(d.done)+'</div>'+(d.cmd?'<div class="pr-flow-meta">コマンド・記入例</div><pre class="pr-flow-code">'+prEsc(d.cmd)+'</pre><button class="sm" data-prstepcopy="'+prEsc(x.id)+'" data-prstepindex="'+i+'">この工程の例をコピー</button>':'')+'</div></details></div></div>'+(i<steps.length-1?'<div class="pr-flow-arrow" aria-hidden="true">↓</div>':'')+'</div>'}).join('')+'</div>';
 }
 
+
+const PR_QUIZ={
+ 'WF-001':[
+  {title:'最初に聞くこと',scene:'あなたは社内ヘルプデスクです。「社内システムにログインできません」と電話がありました。相手は急いでいます。',q:'最初に確認する内容として、最も適切なのはどれですか？',choices:['すぐにパスワードを初期化する','誰が・どのシステムで・いつから・どんなエラーかを確認する','サーバーを再起動する'],a:1,why:'まず対象と症状を正確にします。利用者、システム名、発生時刻、エラー表示が分かれば、影響範囲や次の調査を決められます。パスワード初期化やサーバー再起動は原因確認前に行いません。',tip:'聞き取りの型は「誰が／何に／いつから／何をすると／どうなる」です。パスワードそのものは聞かないでください。'},
+  {title:'影響範囲を確認',scene:'聞き取りの結果、同じ部署の人もログインできないと分かりました。',q:'次に優先して確認することはどれですか？',choices:['その利用者のPCだけを詳しく調べる','何人・何部署に影響しているか、他システムは使えるかを確認する','全員のパスワードを変更する'],a:1,why:'複数人・複数部署に広がっているなら、個人端末だけの問題とは限りません。影響人数・部署・対象システム・代替手段を確認して優先度を判断します。',tip:'「一人だけ」か「複数人」かを早い段階で分けると、調査の方向が大きく変わります。'},
+  {title:'受付記録を残す',scene:'いま分かっているのは、10:05にA部署の3名で発生し、ログイン画面に「認証に失敗しました」と表示されることです。原因はまだ不明です。',q:'受付記録として最も適切なのはどれですか？',choices:['認証サーバー故障と断定して記録する','発生時刻・対象・人数・エラー文を事実として記録し、原因は調査中とする','原因が分かるまで何も記録しない'],a:1,why:'報告では確認できた事実と推測を分けます。原因が未確定なら「調査中」と書き、発生時刻・対象・影響・エラー文を残します。',tip:'実務の記録は「事実」「推測」「未確認」を分けるのが基本です。'}
+ ]
+};
+let prQuizState=(()=>{try{return JSON.parse(localStorage.getItem('ah_pr_quiz_v1')||'{}')}catch(_){return {}}})();
+function prQuizSave(){try{localStorage.setItem('ah_pr_quiz_v1',JSON.stringify(prQuizState))}catch(_){}}
+function prQuizHtml(x){
+ const qs=PR_QUIZ[x.id];
+ if(!qs)return '<section class="pr-quiz"><div class="pr-quiz-kicker">実技トレーニング</div><b>この練習問題は順番に準備しています。</b><p class="pr-quiz-muted">まずはWF-001「問い合わせ受付」を、説明を読みながらゆっくり練習しましょう。</p></section>';
+ let st=prQuizState[x.id]||{step:0,selected:null,completed:false};
+ if(st.completed)return '<section class="pr-quiz"><div class="pr-quiz-kicker">実技トレーニング</div><h4>WF-001の練習完了！</h4><p>3問を最後まで進めました。急いで覚える必要はありません。説明とポイントをもう一度読み返してみましょう。</p><div class="pr-quiz-actions"><button class="sm pri" data-prquizreset="'+x.id+'">最初から復習する</button></div></section>';
+ const n=Math.max(0,Math.min(qs.length-1,Number(st.step)||0)),q=qs[n],revealed=st.selected!==null&&st.selected!==undefined,ok=Number(st.selected)===q.a;
+ return '<section class="pr-quiz"><div class="pr-quiz-kicker">実技トレーニング ／ '+x.id+'</div><div><b>今回のケース：'+prEsc(q.title)+'</b></div><div class="pr-quiz-progress"><span style="width:'+Math.round((n/qs.length)*100)+'%"></span></div><div class="pr-quiz-muted">問題 '+(n+1)+' / '+qs.length+' ・自分のペースで進めましょう</div><p>'+prEsc(q.scene)+'</p><div class="pr-quiz-question">'+prEsc(q.q)+'</div>'+q.choices.map((c,i)=>'<button class="pr-quiz-choice '+(revealed&&i===q.a?'correct':'')+' '+(revealed&&Number(st.selected)===i&&i!==q.a?'wrong':'')+' '+(revealed&&Number(st.selected)===i?'chosen':'')+'" data-prquizanswer="'+i+'" data-prquizid="'+x.id+'" '+(revealed?'disabled':'')+'><b>'+(i+1)+'.</b> '+prEsc(c)+(revealed&&i===q.a?'　✓ 正解':'')+'</button>').join('')+(revealed?'<div class="pr-quiz-feedback '+(ok?'good':'retry')+'"><b>'+(ok?'正解です！':'ここは復習ポイントです')+'</b><p>'+prEsc(q.why)+'</p><b>覚えるポイント</b><p>'+prEsc(q.tip)+'</p></div><div class="pr-quiz-actions"><button class="sm pri" data-prquiznext="'+x.id+'">'+(n===qs.length-1?'練習を完了する':'次の問題へ')+'</button></div>':'<p class="pr-quiz-muted">選択肢を一つ選ぶと、答えと理由が表示されます。間違えても大丈夫です。</p>')+'</section>';
+}
+
 function prDetailHtml(x){
  const steps=prWorkflow(x),parts=(x.parts||[]).map(p=>typeof p==='string'?p:p.name).filter(Boolean);
  const related=(x.related||[]).map(id=>PRACTICE.find(z=>z.id===id)).filter(Boolean);
@@ -1605,6 +1641,10 @@ document.addEventListener('click',e=>{
  const b=e.target.closest('[data-prselect],[data-prdone],[data-prreport],[data-prask],[data-prexample],[data-prstepcopy]');if(!b)return;
  if(b.dataset.prselect){prSelect(b.dataset.prselect);return}
  if(b.dataset.prdone){const id=b.dataset.prdone;prDone[id]=!prDone[id];try{localStorage.setItem('ah_practice_done_v1',JSON.stringify(prDone))}catch(_){}prSelect(id);return}
+
+ if(b.dataset.prquizanswer!==undefined){const id=b.dataset.prquizid,qs=PR_QUIZ[id],st=prQuizState[id]||{step:0,selected:null,completed:false},q=qs&&qs[st.step];if(q&&st.selected===null){st.selected=Number(b.dataset.prquizanswer);prQuizState[id]=st;prQuizSave();prSelect(id)}return}
+ if(b.dataset.prquiznext){const id=b.dataset.prquiznext,qs=PR_QUIZ[id],st=prQuizState[id]||{step:0,selected:null,completed:false};if(qs){if(st.step>=qs.length-1)st.completed=true;else{st.step++;st.selected=null}prQuizState[id]=st;prQuizSave();prSelect(id)}return}
+ if(b.dataset.prquizreset){delete prQuizState[b.dataset.prquizreset];prQuizSave();prSelect(b.dataset.prquizreset);return}
  if(b.dataset.prstepcopy){const x=PRACTICE.find(z=>z.id===b.dataset.prstepcopy);if(x){const steps=prWorkflow(x),n=Number(b.dataset.prstepindex),d=prStepPlaybook(steps[n]||'',n,steps.length,x),el=document.createElement('textarea');el.value=d.cmd||'';document.body.appendChild(el);el.select();try{document.execCommand('copy');toast('工程の例をコピーしました')}catch(_){prompt('コピーしてください',el.value)}el.remove()}return}
  if(b.dataset.prexample){const x=PRACTICE.find(z=>z.id===b.dataset.prexample);if(x){const el=document.createElement('textarea');el.value=x.example||'';document.body.appendChild(el);el.select();try{document.execCommand('copy');toast('例題をコピーしました')}catch(_){prompt('コピーしてください',el.value)}el.remove()}return}
  if(b.dataset.prreport){const x=PRACTICE.find(z=>z.id===b.dataset.prreport);if(x){const el=document.createElement('textarea');el.value=$('prReportText').textContent;document.body.appendChild(el);el.select();try{document.execCommand('copy');toast('報告書テンプレートをコピーしました')}catch(_){prompt('コピーしてください',el.value)}el.remove()}return}
