@@ -45,6 +45,11 @@
 - [PowerShell実務マスター完全ガイド](docs/POWERSHELL-PRACTICAL-MASTER.md)：コマンドの組み立て方、基本構文、実務レシピ、エラー対応、安全設計、30日演習。
 - AI-HUBの「📊 実務」→「PowerShell」からPS-001〜PS-025を索引検索できます。
 
+## 実務ワークフロー詳細ガイド
+
+- [WF-001〜WF-010 実務ワークフロー実践プレイブック](docs/WORKFLOW-PRACTICAL-PLAYBOOK.md)
+- 各工程の実施内容・記録する証跡・次へ進む条件・安全な確認コマンドを収録。
+
 ## Java・ネットワークの実務学習
 
 - AI-HUB「📊 実務」→「Java」：JA-001〜JA-020。Javaの基本文法、クラス・メソッド、例外、HTTP/TCP、Maven/Gradle、JUnit、障害調査。
