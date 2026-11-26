@@ -1637,7 +1637,7 @@ const PR_QUIZ={
 let prQuizState=(()=>{try{return JSON.parse(localStorage.getItem('ah_pr_quiz_v1')||'{}')}catch(_){return {}}})();
 function prQuizSave(){try{localStorage.setItem('ah_pr_quiz_v1',JSON.stringify(prQuizState))}catch(_){}}
 function prQuizHtml(x){
- const qs=PR_QUIZ[x.id];
+ const qs=PR_QUIZ[x.id]||PR_QUIZ[(x.id||'').split('-')[0]];
  if(!qs)return '<section class="pr-quiz"><div class="pr-quiz-kicker">実技トレーニング</div><b>この練習問題は順番に準備しています。</b><p class="pr-quiz-muted">この項目の練習問題は順番に準備しています。まずは説明とワークフローをゆっくり確認しましょう。</p></section>';
  let st=prQuizState[x.id]||{step:0,selected:null,completed:false};
  if(st.completed)return '<section class="pr-quiz"><div class="pr-quiz-kicker">実技トレーニング</div><h4>'+prEsc(x.id)+'の練習完了！</h4><p>'+qs.length+'問を最後まで進めました。急いで覚える必要はありません。説明とポイントをもう一度読み返してみましょう。</p><div class="pr-quiz-actions"><button class="sm pri" data-prquizreset="'+x.id+'">最初から復習する</button></div></section>';
