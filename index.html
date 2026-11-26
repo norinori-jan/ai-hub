@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0f1117">
-<meta name="ah-rev" content="ah-r21">
+<meta name="ah-rev" content="ah-r22">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
@@ -93,6 +93,7 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
 .pr-flow-caption{font-size:12px;color:var(--muted,#667085);margin:4px 0 8px}
 @media(min-width:900px){.pr-flow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.pr-flow-step{min-height:88px}.pr-flow-arrow{display:none}}
 
+.pr-flow-step details{margin-top:9px;border-top:1px solid var(--line);padding-top:8px}.pr-flow-step summary{cursor:pointer;font-size:12px;font-weight:700;color:#9cc4ff;list-style:none}.pr-flow-step summary:after{content:'＋';float:right}.pr-flow-step details[open] summary:after{content:'−'}.pr-flow-detail{font-size:12px;line-height:1.7;margin-top:8px}.pr-flow-code{white-space:pre-wrap;overflow-wrap:anywhere;background:#0b0e15;border:1px solid var(--line);border-radius:8px;padding:9px;margin:7px 0;font:11px/1.6 ui-monospace,monospace}.pr-flow-meta{font-weight:700;margin-top:7px}
 </style>
 </head>
 <body>
@@ -1555,8 +1556,30 @@ function prStepHint(step,index,total,x){
  if(index===total-1)return '終了：結果を確認し、証跡と次の対応を記録する。';
  return '次工程へ：確認した事実と未解決事項を整理して引き継ぐ。';
 }
+
+function prStepPlaybook(step,i,total,x){
+ const t=String(step||''),id=x.id||'';
+ let action='対象・目的・前提条件を確認し、開始時刻と担当者を記録する。',evidence='対象名、実施時刻、確認結果、未確認事項',done='次の担当者が同じ情報で作業を続けられる。',cmd='';
+ if(/受付|検知|申請|通知|要請|依頼/.test(t)){action='依頼者・対象システム・発生時刻・症状・エラー全文を聞き取り、受付番号を付ける。';evidence='依頼者、対象、発生時刻、エラー、再現頻度';done='対象と症状が第三者にも分かる受付記録がある。';}
+ if(/影響|重大度|リスク|必要性|対象/.test(t)){action='何人・何台・何拠点・どの業務に影響するか、回避策の有無を確認する。';evidence='影響人数、対象拠点、停止機能、開始時刻、回避策';done='影響範囲と優先度、その根拠が記録されている。';}
+ if(/承認|責任者|連絡|報告/.test(t)){action='責任者・システム所有者へ連絡し、作業範囲・実施者・時間帯の承認を記録する。';evidence='承認者、承認時刻、作業範囲、連絡履歴';done='必要な承認と連絡先が明確になっている。';}
+ if(/確認|調査|切り分け|ログ|証拠|原因/.test(t)){action='読み取り専用の確認から始め、発生時刻前後のログ・設定・疎通・直近変更を比較する。事実と仮説を分ける。';evidence='実行コマンド、実行端末、時刻、出力、ログ保存先';done='原因候補と根拠、追加確認事項が整理されている。';}
+ if(/変更|付与|停止|隔離|封じ込め|復元|対応|実施/.test(t)){action='対象・変更内容・影響・バックアップ・戻し手順を確認し、承認済みの範囲だけ実行する。';evidence='承認番号、変更前後、実行者、開始/終了時刻、戻し手順';done='作業結果と変更点が記録され、戻し方が明確。';}
+ if(/復旧|利用確認|動作確認|整合性|テスト/.test(t)){action='サービス状態・監視・アプリ応答・利用者の操作を確認し、再発がないか観察する。';evidence='ヘルスチェック、エラー率、テスト結果、利用者確認';done='必要な業務機能が正常に使えることを確認済み。';}
+ if(/記録|報告|完了|再発防止|棚卸し/.test(t)){action='事実・推測・未確定事項を分け、時系列・対応・現在状態・次の担当と期限を記録する。';evidence='チケット、ログ保存先、報告書、担当者、期限';done='報告書がレビューされ、未完了事項の引継ぎ先が決まっている。';}
+ if(id==='WF-001'||id==='WF-002')cmd='Get-Date\nGet-NetIPConfiguration\nResolve-DnsName <接続先ホスト名>\nTest-NetConnection <接続先ホスト名> -Port 443';
+ if(['WF-003','WF-004','WF-005'].includes(id))cmd='Get-ADUser -Identity <ユーザーID> -Properties Enabled,MemberOf\nGet-ADPrincipalGroupMembership -Identity <ユーザーID>\n# ADモジュール導入済みの管理端末で承認対象を参照確認';
+ if(id==='WF-006')cmd='Get-Service -Name <サービス名>\nGet-WinEvent -FilterHashtable @{LogName="System";StartTime=(Get-Date).AddHours(-2)} -MaxEvents 50';
+ if(id==='WF-007')cmd='Get-ChildItem -LiteralPath <バックアップ確認用パス> -File | Select-Object Name,Length,LastWriteTime\n# 復元は承認・復元先・対象時点を確認後に実施';
+ if(id==='WF-008')cmd='Get-Date\nGet-NetTCPConnection | Select-Object State,LocalAddress,LocalPort,RemoteAddress,RemotePort\nGet-FileHash -Algorithm SHA256 -LiteralPath <証跡ファイル>\n# 隔離・停止・削除は責任者の指示に従う';
+ if(id==='WF-009')cmd='【事象】\n【発生日時】\n【影響範囲】\n【確認した事実】\n【実施対応】\n【現在の状態】\n【未確定事項・次の対応】';
+ if(id==='WF-010')cmd='【直接原因】\n【根本原因】\n【発生条件】\n【検知できなかった理由】\n【恒久対策・担当・期限】\n【効果確認方法】';
+ if(id==='WF-002'&&/原因|調査|切り分け/.test(t))cmd+='\n# Javaアプリの確認例（対象PIDを特定してから）\njcmd -l\njcmd <PID> Thread.print\nSelect-String -Path <ログファイル> -Pattern "ERROR|Exception"';
+ return {action,evidence,done,cmd};
+}
+
 function prFlowHtml(steps,x){
- return '<div class="pr-flow-caption">工程を上から順に確認します。各カードの補足で「何を確認するか」を把握できます。</div><div class="pr-flow">'+steps.map((step,i)=>'<div><div class="pr-flow-step"><div class="pr-flow-num">'+(i+1)+'</div><div><div class="pr-flow-title">'+prEsc(step)+'</div><div class="pr-flow-hint">'+prEsc(prStepHint(step,i,steps.length,x))+'</div></div></div>'+(i<steps.length-1?'<div class="pr-flow-arrow" aria-hidden="true">↓</div>':'')+'</div>').join('')+'</div>';
+ return '<div class="pr-flow-caption">各工程の「次にすること」を開くと、実施内容・確認する証跡・完了条件・コマンドが分かります。</div><div class="pr-flow">'+steps.map((step,i)=>{const d=prStepPlaybook(step,i,steps.length,x);return '<div><div class="pr-flow-step"><div class="pr-flow-num">'+(i+1)+'</div><div><div class="pr-flow-title">'+prEsc(step)+'</div><div class="pr-flow-hint">'+prEsc(prStepHint(step,i,steps.length,x))+'</div><details><summary>この工程で次にすること</summary><div class="pr-flow-detail"><div class="pr-flow-meta">実施内容</div><div>'+prEsc(d.action)+'</div><div class="pr-flow-meta">記録・確認するもの</div><div>'+prEsc(d.evidence)+'</div><div class="pr-flow-meta">次へ進む条件</div><div>'+prEsc(d.done)+'</div>'+(d.cmd?'<div class="pr-flow-meta">コマンド・記入例</div><pre class="pr-flow-code">'+prEsc(d.cmd)+'</pre><button class="sm" data-prstepcopy="'+prEsc(x.id)+'" data-prstepindex="'+i+'">この工程の例をコピー</button>':'')+'</div></details></div></div>'+(i<steps.length-1?'<div class="pr-flow-arrow" aria-hidden="true">↓</div>':'')+'</div>'}).join('')+'</div>';
 }
 
 function prDetailHtml(x){
@@ -1579,9 +1602,10 @@ function prSelect(id){const x=PRACTICE.find(z=>z.id===id);if(!x)return;prSelecte
 $('prSearch').addEventListener('input',prPaint);
 $('prCats').addEventListener('click',e=>{const b=e.target.closest('[data-prcat]');if(!b)return;prCat=b.dataset.prcat;$('prCats').querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b));prPaint()});
 document.addEventListener('click',e=>{
- const b=e.target.closest('[data-prselect],[data-prdone],[data-prreport],[data-prask],[data-prexample]');if(!b)return;
+ const b=e.target.closest('[data-prselect],[data-prdone],[data-prreport],[data-prask],[data-prexample],[data-prstepcopy]');if(!b)return;
  if(b.dataset.prselect){prSelect(b.dataset.prselect);return}
  if(b.dataset.prdone){const id=b.dataset.prdone;prDone[id]=!prDone[id];try{localStorage.setItem('ah_practice_done_v1',JSON.stringify(prDone))}catch(_){}prSelect(id);return}
+ if(b.dataset.prstepcopy){const x=PRACTICE.find(z=>z.id===b.dataset.prstepcopy);if(x){const steps=prWorkflow(x),n=Number(b.dataset.prstepindex),d=prStepPlaybook(steps[n]||'',n,steps.length,x),el=document.createElement('textarea');el.value=d.cmd||'';document.body.appendChild(el);el.select();try{document.execCommand('copy');toast('工程の例をコピーしました')}catch(_){prompt('コピーしてください',el.value)}el.remove()}return}
  if(b.dataset.prexample){const x=PRACTICE.find(z=>z.id===b.dataset.prexample);if(x){const el=document.createElement('textarea');el.value=x.example||'';document.body.appendChild(el);el.select();try{document.execCommand('copy');toast('例題をコピーしました')}catch(_){prompt('コピーしてください',el.value)}el.remove()}return}
  if(b.dataset.prreport){const x=PRACTICE.find(z=>z.id===b.dataset.prreport);if(x){const el=document.createElement('textarea');el.value=$('prReportText').textContent;document.body.appendChild(el);el.select();try{document.execCommand('copy');toast('報告書テンプレートをコピーしました')}catch(_){prompt('コピーしてください',el.value)}el.remove()}return}
  if(b.dataset.prask){const x=PRACTICE.find(z=>z.id===b.dataset.prask);if(x){$('q').value=x.term+'について、意味・確認手順・障害時の初動・注意点を教えて';document.querySelector('nav button[data-t=ask]').click();$('q').focus()}return}
