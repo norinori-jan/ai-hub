@@ -1,17 +1,18 @@
 {
-  "name": "しらべる（辞書・メモ）",
-  "short_name": "しらべる",
-  "description": "Personal OS Hub",
+  "id": "./",
+  "name": "AI-HUB｜しらべる・社内IT実務学習",
+  "short_name": "AI-HUB",
+  "description": "社内ITの索引・実技問題・操作手順をオフラインでも学習できるナレッジハブ",
+  "lang": "ja",
   "start_url": "./",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#0f1720",
-  "theme_color": "#0f1720",
+  "background_color": "#0f1117",
+  "theme_color": "#0f1117",
+  "orientation": "any",
+  "categories": ["education", "productivity", "utilities"],
   "icons": [
-    {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧭</text></svg>",
-      "sizes": "192x192 512x512",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    }
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ]
 }
