@@ -116,6 +116,14 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
 <body>
 <header><h1>🔎 しらべる</h1><span class="badge" id="hb">読み込み前</span></header>
 <div id="banner"></div>
+<div class="card" id="offlineGuide">
+  <div class="row" style="justify-content:space-between;align-items:center">
+    <b>📴 オフライン利用</b><span class="badge" id="offlineState">準備中</span>
+  </div>
+  <div class="dim" id="offlineMessage" style="margin-top:6px">教材を端末に保存しています。初回のオンライン読み込みが終わるまで、この画面を開いたままにしてください。</div>
+  <div class="row"><button class="sm" id="offlineSaveBtn" type="button">📥 オフライン用データを保存・更新</button><button class="sm" id="pwaInstallBtn" type="button" hidden>ホーム画面に追加</button></div>
+  <div class="dim">PC：Chrome / Edge のインストールアイコン、またはブラウザメニューから「アプリをインストール」。iPhone：Safariの共有 →「ホーム画面に追加」。Android：Chromeメニュー →「アプリをインストール」または「ホーム画面に追加」。</div>
+</div>
 
 <section id="s-ask">
   <div class="card">
@@ -1682,7 +1690,48 @@ paintUsage();paintHead();paintKnow();paintGrow();prLoad();
 (async()=>{const pk=await idbGet('pack');if(pk)setPack(pk);paintPack();paintHead();paintHits();const c=await idbGet('feed');if(c&&Array.isArray(c.docs)&&c.docs.length){FEED={docs:c.docs,stat:c.stat||{kd:0,qr:0},err:{}};loaded=true;paintHead();paintKnow();paintGrow();paintHits()}
   if(A.config().endpoint&&A.config().token)loadFeed();else if(!(c&&c.docs&&c.docs.length)){$('hb').textContent='未接続';$('hb').className='badge ng';LAST=Object.assign({},{error:'まず ⚙️ で接続を入れてください。iPhoneのホーム画面アプリは、辞書・メモとは設定が別なので、この画面に1回だけ入れます。'});renderAns()}
 })();
-if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
+if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').then(()=>ahOfflineStatus()).catch(()=>{});
+
+// AI-HUB PWA / offline readiness
+let ahInstallPrompt = null;
+function ahOfflineStatus(){
+  const state=document.getElementById('offlineState');
+  const msg=document.getElementById('offlineMessage');
+  if(!state||!msg)return;
+  if(!navigator.onLine){state.textContent='オフライン';state.className='badge ng';msg.textContent='通信していません。端末に保存済みの教材・問題・手順を利用できます。AI接続やクラウド同期は使えません。';}
+  else{state.textContent='オンライン';state.className='badge ok';msg.textContent='オンラインです。教材を端末に保存しておけば、次回から電波がない場所でも利用できます。';}
+}
+window.addEventListener('online',ahOfflineStatus);
+window.addEventListener('offline',ahOfflineStatus);
+window.addEventListener('beforeinstallprompt',event=>{
+  event.preventDefault();ahInstallPrompt=event;
+  const btn=document.getElementById('pwaInstallBtn');if(btn)btn.hidden=false;
+});
+document.getElementById('pwaInstallBtn')?.addEventListener('click',async()=>{
+  if(!ahInstallPrompt)return;
+  ahInstallPrompt.prompt();await ahInstallPrompt.userChoice;ahInstallPrompt=null;
+  const btn=document.getElementById('pwaInstallBtn');if(btn)btn.hidden=true;
+});
+document.getElementById('offlineSaveBtn')?.addEventListener('click',async()=>{
+  const btn=document.getElementById('offlineSaveBtn'),msg=document.getElementById('offlineMessage');
+  btn.disabled=true;msg.textContent='教材・問題・ガイドを保存しています…';
+  try{
+    if(!('serviceWorker' in navigator))throw new Error('このブラウザはオフライン保存に対応していません');
+    const reg=await navigator.serviceWorker.ready;
+    const worker=reg.active||navigator.serviceWorker.controller;
+    if(!worker)throw new Error('保存機能の準備中です。数秒後にもう一度押してください');
+    worker.postMessage({type:'AI_HUB_PRECACHE'});
+    await Promise.all([
+      fetch('knowledge-packs/it-operations.json',{cache:'reload'}),
+      fetch('knowledge-packs/master-practice-questions.json',{cache:'reload'})
+    ]);
+    msg.textContent='オフライン用データの保存を開始しました。数秒待ってから機内モード等で動作を確認してください。';
+    ahOfflineStatus();
+  }catch(e){msg.textContent='保存できませんでした：'+e.message;}
+  finally{btn.disabled=false;}
+});
+ahOfflineStatus();
+
 window.__ah={get PACK(){return PACK},get PKD(){return PKD},get MINED(){return MINED},get LAST(){return LAST},get RULES(){return RULES},get MEM(){return MEM},get FB(){return FB},boost,allDocs};
 })();
 </script>
