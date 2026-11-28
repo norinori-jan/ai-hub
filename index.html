@@ -124,6 +124,37 @@ label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
   <div class="row"><button class="sm" id="offlineSaveBtn" type="button">📥 オフライン用データを保存・更新</button><button class="sm" id="pwaInstallBtn" type="button" hidden>ホーム画面に追加</button></div>
   <div class="dim">PC：Chrome / Edge のインストールアイコン、またはブラウザメニューから「アプリをインストール」。iPhone：Safariの共有 →「ホーム画面に追加」。Android：Chromeメニュー →「アプリをインストール」または「ホーム画面に追加」。</div>
 </div>
+<script>
+(function(){
+  const btn=document.getElementById('offlineSaveBtn');
+  const msg=document.getElementById('offlineMessage');
+  if(!btn||!msg)return;
+  btn.addEventListener('click',async function(){
+    btn.disabled=true;
+    msg.textContent='教材・問題・ガイドを端末に保存しています…';
+    try{
+      if(!('serviceWorker' in navigator))throw new Error('このブラウザはオフライン保存に対応していません');
+      await navigator.serviceWorker.register('./sw.js');
+      const reg=await navigator.serviceWorker.ready;
+      const worker=reg.active||navigator.serviceWorker.controller;
+      if(!worker)throw new Error('保存機能の準備ができていません。ページを再読み込みして再度お試しください');
+      const channel=new MessageChannel();
+      const result=new Promise((resolve,reject)=>{
+        const timer=setTimeout(()=>reject(new Error('保存完了の応答がありません。ページを再読み込みして再度お試しください')),30000);
+        channel.port1.onmessage=e=>{clearTimeout(timer);resolve(e.data||{});};
+      });
+      worker.postMessage({type:'AI_HUB_PRECACHE'},[channel.port2]);
+      const response=await result;
+      if(!response.ok)throw new Error(response.error||'キャッシュ保存に失敗しました');
+      msg.textContent='保存完了：教材・問題・ガイド '+response.count+' 件をこの端末に保存しました。通信を切って利用できるか確認できます。';
+    }catch(e){
+      msg.textContent='保存できませんでした：'+e.message;
+    }finally{
+      btn.disabled=false;
+    }
+  });
+})();
+</script>
 
 <section id="s-ask">
   <div class="card">
@@ -1712,24 +1743,8 @@ document.getElementById('pwaInstallBtn')?.addEventListener('click',async()=>{
   ahInstallPrompt.prompt();await ahInstallPrompt.userChoice;ahInstallPrompt=null;
   const btn=document.getElementById('pwaInstallBtn');if(btn)btn.hidden=true;
 });
-document.getElementById('offlineSaveBtn')?.addEventListener('click',async()=>{
-  const btn=document.getElementById('offlineSaveBtn'),msg=document.getElementById('offlineMessage');
-  btn.disabled=true;msg.textContent='教材・問題・ガイドを保存しています…';
-  try{
-    if(!('serviceWorker' in navigator))throw new Error('このブラウザはオフライン保存に対応していません');
-    const reg=await navigator.serviceWorker.ready;
-    const worker=reg.active||navigator.serviceWorker.controller;
-    if(!worker)throw new Error('保存機能の準備中です。数秒後にもう一度押してください');
-    worker.postMessage({type:'AI_HUB_PRECACHE'});
-    await Promise.all([
-      fetch('knowledge-packs/it-operations.json',{cache:'reload'}),
-      fetch('knowledge-packs/master-practice-questions.json',{cache:'reload'})
-    ]);
-    msg.textContent='オフライン用データの保存を開始しました。数秒待ってから機内モード等で動作を確認してください。';
-    ahOfflineStatus();
-  }catch(e){msg.textContent='保存できませんでした：'+e.message;}
-  finally{btn.disabled=false;}
-});
+// offline save click handler is initialized near the offline card so it remains independent
+// from the main application initialization.
 ahOfflineStatus();
 
 window.__ah={get PACK(){return PACK},get PKD(){return PKD},get MINED(){return MINED},get LAST(){return LAST},get RULES(){return RULES},get MEM(){return MEM},get FB(){return FB},boost,allDocs};
