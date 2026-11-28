@@ -36,9 +36,16 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('message', event => {
   if (event.data && event.data.type === 'AI_HUB_PRECACHE') {
-    event.waitUntil(caches.open(CACHE_NAME).then(cache =>
-      cache.addAll(APP_FILES.map(path => new URL(path, APP_BASE).href))
-    ));
+    const reply = event.ports && event.ports[0];
+    event.waitUntil((async () => {
+      try {
+        const cache = await caches.open(CACHE_NAME);
+        await cache.addAll(APP_FILES.map(path => new URL(path, APP_BASE).href));
+        if (reply) reply.postMessage({ ok: true, count: APP_FILES.length });
+      } catch (error) {
+        if (reply) reply.postMessage({ ok: false, error: error && error.message ? error.message : String(error) });
+      }
+    })());
   }
 });
 
